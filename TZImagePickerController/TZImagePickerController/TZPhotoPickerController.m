@@ -688,7 +688,8 @@ static CGFloat itemMargin = 5;
                                 [[NSFileManager defaultManager] moveItemAtURL:[NSURL fileURLWithPath:outputPath] toURL:[NSURL fileURLWithPath:exportFilePath] error:&moveErr];
                                 // 获取封面图
                                 PHVideoRequestOptions* options = [[PHVideoRequestOptions alloc] init];
-                                options.version = PHVideoRequestOptionsVersionOriginal;
+                                /// 设置为当前版本，包含用户编辑后信息，比如滤镜
+                                options.version = PHVideoRequestOptionsVersionCurrent;
                                 options.deliveryMode = PHVideoRequestOptionsDeliveryModeAutomatic;
                                 options.networkAccessAllowed = YES;
                                 [[PHImageManager defaultManager] requestAVAssetForVideo:model.asset options:options resultHandler:^(AVAsset * _Nullable asset, AVAudioMix * _Nullable audioMix, NSDictionary * _Nullable info) {
