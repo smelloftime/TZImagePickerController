@@ -877,7 +877,7 @@ static CGFloat itemMargin = 5;
             [imagePickerVC hideProgressHUD];
             [imagePickerVC dismissViewControllerAnimated:YES completion:^{
                 if ([imagePickerVC.pickerDelegate respondsToSelector:@selector(imagePickerController:didFinishEditVideoCoverImage:videoURL:)]) {
-                    [imagePickerVC.pickerDelegate imagePickerController:imagePickerVC didFinishEditVideoCoverImage:coverImage videoURL:[NSURL URLWithString:outputPath]];
+                    [imagePickerVC.pickerDelegate imagePickerController:imagePickerVC didFinishEditVideoCoverImage:coverImage videoURL:[NSURL fileURLWithPath:outputPath]];
                 }
                 /// 导航内视图全部pop以释放内存
                 for (int i = 0; i < self.navigationController.viewControllers.count; i ++) {
