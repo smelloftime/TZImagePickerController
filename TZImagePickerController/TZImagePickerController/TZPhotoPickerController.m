@@ -1135,6 +1135,10 @@ static CGFloat itemMargin = 5;
     }
     
     if (tzImagePickerVc.maxImagesCount <= 1) {
+        if (tzImagePickerVc.backWhenFinishTakePhoto && asset.mediaType == PHAssetMediaTypeImage) {
+            [tzImagePickerVc.selectedModels addObject:assetModel];
+            [self doneButtonClick];
+        }
         if (tzImagePickerVc.allowCrop && asset.mediaType == PHAssetMediaTypeImage) {
             TZPhotoPreviewController *photoPreviewVc = [[TZPhotoPreviewController alloc] init];
             if (tzImagePickerVc.sortAscendingByModificationDate) {
