@@ -586,6 +586,27 @@ static dispatch_once_t onceToken;
     [self getVideoOutputPathWithAsset:asset success:completion failure:nil];
 }
 
+- (void)compressionVideoWithVideoURL:(NSURL *)videoURL quality:(VideoQualityType)quality success:(void (^)(NSString *outputPath))success failure:(void (^)(NSString *errorMessage, NSError *error))failure {
+    NSDateFormatter *formater = [[NSDateFormatter alloc] init];
+    [formater setDateFormat:@"yyyy-MM-dd-HH:mm:ss-SSS"];
+    NSString *outputPath = [NSHomeDirectory() stringByAppendingFormat:@"/tmp/video-%@.mp4", [formater stringFromDate:[NSDate date]]];
+    if (videoURL && videoURL.lastPathComponent) {
+        outputPath = [outputPath stringByReplacingOccurrencesOfString:@".mp4" withString:[NSString stringWithFormat:@"-%@", videoURL.lastPathComponent]];
+    }
+    if (![[NSFileManager defaultManager] fileExistsAtPath:[NSHomeDirectory() stringByAppendingFormat:@"/tmp"]]) {
+        [[NSFileManager defaultManager] createDirectoryAtPath:[NSHomeDirectory() stringByAppendingFormat:@"/tmp"] withIntermediateDirectories:YES attributes:nil error:nil];
+    }
+    CompressSetting *setting = [[CompressSetting alloc] initWithInputURL:videoURL outputURL:[NSURL fileURLWithPath:outputPath]];
+    setting.videoQuality = quality;
+    [CompressHelper compressVideoBySetting:setting completionHandler:^(NSError * _Nullable error) {
+        if (error) {
+            failure(error.localizedDescription, error);
+        } else {
+            success(outputPath);
+        }
+    }];
+}
+
 - (void)startExportVideoWithVideoAsset:(AVURLAsset *)videoAsset presetName:(NSString *)presetName success:(void (^)(NSString *outputPath))success failure:(void (^)(NSString *errorMessage, NSError *error))failure {
     // Find compatible presets by video asset.
     NSArray *presets = [AVAssetExportSession exportPresetsCompatibleWithAsset:videoAsset];
