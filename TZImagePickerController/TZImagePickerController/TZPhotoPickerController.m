@@ -663,78 +663,83 @@ static CGFloat itemMargin = 5;
                     // 禁止用户操作
                     tzImagePickerVc.view.userInteractionEnabled = NO;
 
-                    [[PHImageManager defaultManager] requestAVAssetForVideo:model.asset options:nil resultHandler:^(AVAsset * _Nullable asset, AVAudioMix * _Nullable audioMix, NSDictionary * _Nullable info) {
+                    PHVideoRequestOptions* options = [[PHVideoRequestOptions alloc] init];
+                    /// 设置为当前版本，包含用户编辑后信息，比如滤镜
+                    options.version = PHVideoRequestOptionsVersionCurrent;
+                    options.deliveryMode = PHVideoRequestOptionsDeliveryModeAutomatic;
+                    options.networkAccessAllowed = YES;
+                    [[PHImageManager defaultManager] requestAVAssetForVideo:model.asset options:options resultHandler:^(AVAsset * _Nullable asset, AVAudioMix * _Nullable audioMix, NSDictionary * _Nullable info) {
                         if ([asset isKindOfClass:[AVURLAsset class]]) {
                             AVURLAsset *urlAsset = (AVURLAsset*)asset;
                             NSNumber *size;
                             [urlAsset.URL getResourceValue:&size forKey:NSURLFileSizeKey error:nil];
-                            /// 默认25mb以下导出最高画质,25以上导出720p中等画质的视频
-                            // 默认导出720p中等画质的视频
-                            NSString * exportPresetQulity;
-                            if (size.longLongValue / (1024.0 * 1024.4) > 25) {
-                                exportPresetQulity = AVAssetExportPreset960x540;
-                            } else {
-                                exportPresetQulity = AVAssetExportPresetMediumQuality;
-                            }
-                            [[[TZImageManager alloc] init] compressionVideoWithVideoURL:urlAsset.URL quality:VideoQualityTypeHigh success:^(NSString *outputPath) {
-                                NSString *exportFilePath = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.%@",@"exportVideo",@"mp4"]];
-                                if ([[NSFileManager defaultManager] fileExistsAtPath:exportFilePath]) {
-                                    // 移除上一个
-                                    NSError *removeErr;
-                                    [[NSFileManager defaultManager] removeItemAtPath:exportFilePath error: &removeErr];
-                                }
-                                // 把文件移动到同一的路径下，修改为同一的名称。方便后续的操作
-                                NSError *moveErr;
-                                [[NSFileManager defaultManager] moveItemAtURL:[NSURL fileURLWithPath:outputPath] toURL:[NSURL fileURLWithPath:exportFilePath] error:&moveErr];
-                                // 获取封面图
-                                PHVideoRequestOptions* options = [[PHVideoRequestOptions alloc] init];
-                                /// 设置为当前版本，包含用户编辑后信息，比如滤镜
-                                options.version = PHVideoRequestOptionsVersionCurrent;
-                                options.deliveryMode = PHVideoRequestOptionsDeliveryModeAutomatic;
-                                options.networkAccessAllowed = YES;
-                                [[PHImageManager defaultManager] requestAVAssetForVideo:model.asset options:options resultHandler:^(AVAsset * _Nullable asset, AVAudioMix * _Nullable audioMix, NSDictionary * _Nullable info) {
-                                    __weak typeof(self) weakSelf = self;
-                                    AVAssetImageGenerator *generator = [[AVAssetImageGenerator alloc] initWithAsset:asset];
-                                    generator.appliesPreferredTrackTransform = YES;
-                                    generator.requestedTimeToleranceBefore = kCMTimeZero;
-                                    generator.requestedTimeToleranceAfter = kCMTimeZero;
-                                    generator.apertureMode = AVAssetImageGeneratorApertureModeProductionAperture;
-                                    NSError *error = nil;
-                                    UIImage *coverImage;
-                                    
-                                    CGFloat second = 0;
-                                    for (int i = 0; i < 5; i ++) {
-                                        CGImageRef img = [generator copyCGImageAtTime:CMTimeMake(second * asset.duration.timescale, asset.duration.timescale) actualTime:NULL error:&error];
-                                        second = second + 0.2;
-                                        if (img != nil) {
-                                            coverImage = [UIImage imageWithCGImage:img];
-                                            break;
-                                        }
-                                        NSLog(@"error\n\n -%@", error);
+                            /// 固定先导出720p视频，然后再压缩
+                            ZLEditVideoController *editVC = [[ZLEditVideoController alloc]init];
+                            CMTime start = CMTimeMakeWithSeconds(0, 0);
+                            CMTime duration =CMTimeMakeWithSeconds(0, 0);
+                            CMTimeRange tRange = CMTimeRangeMake(start, duration);
+                            [editVC export:asset range:tRange complete:^(NSString *exportFilePath, NSError *error) {
+                                /// 二次压缩后弹出页面
+                                NSURL *exportFilePathURL = [NSURL fileURLWithPath:exportFilePath];
+                                [[[TZImageManager alloc] init] compressionVideoWithVideoURL:exportFilePathURL quality:VideoQualityTypeHigh success:^(NSString *outputPath) {
+                                    NSString *exportFilePath = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.%@",@"exportVideo",@"mp4"]];
+                                    if ([[NSFileManager defaultManager] fileExistsAtPath:exportFilePath]) {
+                                        // 移除上一个
+                                        NSError *removeErr;
+                                        [[NSFileManager defaultManager] removeItemAtPath:exportFilePath error: &removeErr];
                                     }
+                                    // 把文件移动到同一的路径下，修改为同一的名称。方便后续的操作
+                                    NSError *moveErr;
+                                    [[NSFileManager defaultManager] moveItemAtURL:[NSURL fileURLWithPath:outputPath] toURL:[NSURL fileURLWithPath:exportFilePath] error:&moveErr];
+                                    // 获取封面图
+                                    PHVideoRequestOptions* options = [[PHVideoRequestOptions alloc] init];
+                                    /// 设置为当前版本，包含用户编辑后信息，比如滤镜
+                                    options.version = PHVideoRequestOptionsVersionCurrent;
+                                    options.deliveryMode = PHVideoRequestOptionsDeliveryModeAutomatic;
+                                    options.networkAccessAllowed = YES;
+                                    [[PHImageManager defaultManager] requestAVAssetForVideo:model.asset options:options resultHandler:^(AVAsset * _Nullable asset, AVAudioMix * _Nullable audioMix, NSDictionary * _Nullable info) {
+                                        AVAssetImageGenerator *generator = [[AVAssetImageGenerator alloc] initWithAsset:asset];
+                                        generator.appliesPreferredTrackTransform = YES;
+                                        generator.requestedTimeToleranceBefore = kCMTimeZero;
+                                        generator.requestedTimeToleranceAfter = kCMTimeZero;
+                                        generator.apertureMode = AVAssetImageGeneratorApertureModeProductionAperture;
+                                        NSError *error = nil;
+                                        UIImage *coverImage;
+                                        
+                                        CGFloat second = 0;
+                                        for (int i = 0; i < 5; i ++) {
+                                            CGImageRef img = [generator copyCGImageAtTime:CMTimeMake(second * asset.duration.timescale, asset.duration.timescale) actualTime:NULL error:&error];
+                                            second = second + 0.2;
+                                            if (img != nil) {
+                                                coverImage = [UIImage imageWithCGImage:img];
+                                                break;
+                                            }
+                                            NSLog(@"error\n\n -%@", error);
+                                        }
+                                        if (coverImage != nil && exportFilePath != nil) {
+                                            /// 切换到主线程
+                                            dispatch_sync(dispatch_get_main_queue(), ^{
+                                                // 允许用户操作
+                                                tzImagePickerVc.view.userInteractionEnabled = YES;
+                                                [tzImagePickerVc hideProgressHUD];
+                                                [tzImagePickerVc dismissViewControllerAnimated:YES completion:^{
+                                                    if ([tzImagePickerVc.pickerDelegate respondsToSelector:@selector(imagePickerController:didFinishEditVideoCoverImage:videoURL:)]) {
+                                                        [tzImagePickerVc.pickerDelegate imagePickerController:tzImagePickerVc didFinishEditVideoCoverImage:coverImage videoURL:[NSURL fileURLWithPath:exportFilePath]];
+                                                    }
+                                                }];
+                                            });
+                                        } else {
+                                            // 允许用户操作
+                                            tzImagePickerVc.view.userInteractionEnabled = YES;
+                                            [tzImagePickerVc showAlertWithTitle:@"封面获取出问题啦，请手动编辑"];
+                                        }
+                                    }];
+                                } failure:^(NSString *errorMessage, NSError *error) {
                                     // 允许用户操作
                                     tzImagePickerVc.view.userInteractionEnabled = YES;
                                     [tzImagePickerVc hideProgressHUD];
-                                    if (coverImage != nil && exportFilePath != nil) {
-                                        /// 切换到主线程
-                                        dispatch_sync(dispatch_get_main_queue(), ^{
-                                            [tzImagePickerVc dismissViewControllerAnimated:YES completion:^{
-                                                if ([tzImagePickerVc.pickerDelegate respondsToSelector:@selector(imagePickerController:didFinishEditVideoCoverImage:videoURL:)]) {
-                                                    [tzImagePickerVc.pickerDelegate imagePickerController:tzImagePickerVc didFinishEditVideoCoverImage:coverImage videoURL:[NSURL fileURLWithPath:exportFilePath]];
-                                                }
-                                            }];
-                                        });
-                                    } else {
-                                        // 允许用户操作
-                                        tzImagePickerVc.view.userInteractionEnabled = YES;
-                                        [tzImagePickerVc showAlertWithTitle:@"封面获取出问题啦，请手动编辑"];
-                                    }
+                                    [tzImagePickerVc showAlertWithTitle:@"自动导出出问题啦，请手动编辑"];
                                 }];
-                            } failure:^(NSString *errorMessage, NSError *error) {
-                                // 允许用户操作
-                                tzImagePickerVc.view.userInteractionEnabled = YES;
-                                [tzImagePickerVc hideProgressHUD];
-                                [tzImagePickerVc showAlertWithTitle:@"自动导出出问题啦，请手动编辑"];
                             }];
                         } else {
                             // 允许用户操作

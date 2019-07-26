@@ -688,7 +688,9 @@
     NSLog(@"exportFileUrl -%@", exportFileUrl.absoluteString);
     exportSession.outputURL = exportFileUrl;
     exportSession.outputFileType = AVFileTypeMPEG4;
-    exportSession.timeRange = range;
+    if (range.duration.value > 0) {
+        exportSession.timeRange = range;
+    }
     [exportSession exportAsynchronouslyWithCompletionHandler:^{
         BOOL suc = NO;
         switch ([exportSession status]) {

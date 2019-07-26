@@ -22,5 +22,7 @@
 @property (nonatomic) NSUInteger maxEditVideoTime;
 /// 最小可选视频时长(秒) 默认3秒
 @property (nonatomic) NSUInteger minEditVideoTime;
+/// 导出视频
+- (void)export:(AVAsset *)asset range:(CMTimeRange)range complete:(void (^)(NSString *exportFilePath, NSError *error))complete;
 
 @end
