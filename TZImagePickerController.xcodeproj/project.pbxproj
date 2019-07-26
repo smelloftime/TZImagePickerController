@@ -25,6 +25,9 @@
 		88CA578E20F748370089B1C8 /* LZImageCropping.h in Headers */ = {isa = PBXBuildFile; fileRef = 88CA578920F748370089B1C8 /* LZImageCropping.h */; };
 		88CA578F20F748370089B1C8 /* LZImageCropping.m in Sources */ = {isa = PBXBuildFile; fileRef = 88CA578A20F748370089B1C8 /* LZImageCropping.m */; };
 		88CA579020F748370089B1C8 /* LZImageCropping.m in Sources */ = {isa = PBXBuildFile; fileRef = 88CA578A20F748370089B1C8 /* LZImageCropping.m */; };
+		88FAC6E322D5ECEC00885743 /* CompressHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 88FAC6E122D5ECEC00885743 /* CompressHelper.m */; };
+		88FAC6E422D5ECEC00885743 /* CompressHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 88FAC6E122D5ECEC00885743 /* CompressHelper.m */; };
+		88FAC6E522D5ECEC00885743 /* CompressHelper.h in Headers */ = {isa = PBXBuildFile; fileRef = 88FAC6E222D5ECEC00885743 /* CompressHelper.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		90020E1320F8840800D3AB10 /* TZImagePickerController.podspec in Resources */ = {isa = PBXBuildFile; fileRef = 90020E1220F8840800D3AB10 /* TZImagePickerController.podspec */; };
 		90020E1520F8840F00D3AB10 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 90020E1420F8840E00D3AB10 /* README.md */; };
 		900E65811C2BB8D5003D9A9E /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 900E65801C2BB8D5003D9A9E /* main.m */; };
@@ -146,6 +149,8 @@
 		88CA578820F748370089B1C8 /* LZImageBrowser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LZImageBrowser.m; sourceTree = "<group>"; };
 		88CA578920F748370089B1C8 /* LZImageCropping.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LZImageCropping.h; sourceTree = "<group>"; };
 		88CA578A20F748370089B1C8 /* LZImageCropping.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LZImageCropping.m; sourceTree = "<group>"; };
+		88FAC6E122D5ECEC00885743 /* CompressHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CompressHelper.m; sourceTree = "<group>"; };
+		88FAC6E222D5ECEC00885743 /* CompressHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CompressHelper.h; sourceTree = "<group>"; };
 		90020E1220F8840800D3AB10 /* TZImagePickerController.podspec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TZImagePickerController.podspec; sourceTree = SOURCE_ROOT; };
 		90020E1420F8840E00D3AB10 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = SOURCE_ROOT; };
 		900E657C1C2BB8D5003D9A9E /* TZImagePickerController.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TZImagePickerController.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -324,6 +329,8 @@
 		900EEFF51C2BBF7600EA709B /* TZImagePickerController */ = {
 			isa = PBXGroup;
 			children = (
+				88FAC6E222D5ECEC00885743 /* CompressHelper.h */,
+				88FAC6E122D5ECEC00885743 /* CompressHelper.m */,
 				38B06234211897360035DCE3 /* TSLocalVideoCoverSelectedVC.h */,
 				38B06235211897360035DCE3 /* TSLocalVideoCoverSelectedVC.m */,
 				38B06230211896340035DCE3 /* ZLEditVideoController.h */,
@@ -425,6 +432,7 @@
 				9F763A741FA0741D00D9E526 /* TZGifPhotoPreviewController.h in Headers */,
 				88CA578B20F748370089B1C8 /* LZImageBrowser.h in Headers */,
 				9F763A751FA0741D00D9E526 /* TZProgressView.h in Headers */,
+				88FAC6E522D5ECEC00885743 /* CompressHelper.h in Headers */,
 				9F763A731FA0741D00D9E526 /* TZVideoPlayerController.h in Headers */,
 				9F763A741FA0741D00D9E526 /* TZGifPhotoPreviewController.h in Headers */,
 				9F763A761FA0741D00D9E526 /* TZImageManager.h in Headers */,
@@ -549,6 +557,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 				"zh-Hans",
@@ -623,6 +632,7 @@
 				6D32B9BD1CD83640005CE1E0 /* LxGridViewFlowLayout.m in Sources */,
 				38B06231211896340035DCE3 /* ZLEditVideoController.m in Sources */,
 				6D4608311DFFC60D004FB009 /* TZGifPhotoPreviewController.m in Sources */,
+				88FAC6E322D5ECEC00885743 /* CompressHelper.m in Sources */,
 				38B06237211897360035DCE3 /* TSLocalVideoCoverSelectedVC.m in Sources */,
 				900EF0161C2C134900EA709B /* TZPhotoPreviewCell.m in Sources */,
 				900E65871C2BB8D5003D9A9E /* ViewController.m in Sources */,
@@ -665,6 +675,7 @@
 				901CC3FB21CB757500C55443 /* TZImageRequestOperation.m in Sources */,
 				9F763A501FA072E500D9E526 /* TZImagePickerController.m in Sources */,
 				9F763A521FA072E500D9E526 /* TZPhotoPickerController.m in Sources */,
+				88FAC6E422D5ECEC00885743 /* CompressHelper.m in Sources */,
 				9F763A541FA072E500D9E526 /* TZAssetCell.m in Sources */,
 				9F763A561FA072E500D9E526 /* TZAssetModel.m in Sources */,
 				88CA578D20F748370089B1C8 /* LZImageBrowser.m in Sources */,

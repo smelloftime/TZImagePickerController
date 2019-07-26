@@ -292,7 +292,7 @@
 @property (nonatomic) NSUInteger minEditVideoTime;
 /// 直接进入视频编辑 默认NO 弹窗提示是否快速上传或者编辑后上传
 @property (nonatomic) BOOL directEditVideo;
-
+@property (nonatomic) BOOL backWhenFinishTakePhoto;
 
 // MARK: end
 
