@@ -207,7 +207,7 @@
     self.toolBarSpLine.backgroundColor = [UIColor colorWithRed:rgb2 green:rgb2 blue:rgb2 alpha:1.0];
     [_toolBar addSubview: self.toolBarSpLine];
     [self.view addSubview:_toolBar];
-    
+
     if (_tzImagePickerVc.photoPreviewPageUIConfigBlock) {
         _tzImagePickerVc.photoPreviewPageUIConfigBlock(_collectionView, _naviBar, _backButton, _selectButton, _indexLabel, _toolBar, _originalPhotoButton, _originalPhotoLabel, _doneButton, _numberImageView, _numberLabel);
     }
@@ -306,7 +306,7 @@
     self.toolBarSpLine.frame = CGRectMake(0, 0, _naviBar.frame.size.width, 0.5);
 
     [self configCropView];
-    
+    [self updateDoneBtnSize];
     if (_tzImagePickerVc.photoPreviewPageDidLayoutSubviewsBlock) {
         _tzImagePickerVc.photoPreviewPageDidLayoutSubviewsBlock(_collectionView, _naviBar, _backButton, _selectButton, _indexLabel, _toolBar, _originalPhotoButton, _originalPhotoLabel, _doneButton, _numberImageView, _numberLabel);
     }
@@ -546,7 +546,17 @@
 - (void)dealloc {
     // NSLog(@"%@ dealloc",NSStringFromClass(self.class));
 }
-
+- (void)updateDoneBtnSize {
+    CGFloat btnRight = _doneButton.frame.origin.x + _doneButton.frame.size.width;
+    CGFloat btnHeight = _doneButton.frame.size.height;
+    CGFloat btnCenterY = _doneButton.center.y;
+    
+    [_doneButton sizeToFit];
+    CGFloat titleWidth = _doneButton.frame.size.width;
+    CGFloat btnWidth = titleWidth + 6 * 2;
+    _doneButton.frame = CGRectMake(btnRight - btnWidth, 0, btnWidth, btnHeight);
+    _doneButton.center = CGPointMake(_doneButton.center.x, btnCenterY);
+}
 - (void)refreshNaviBarAndBottomBarState {
     TZImagePickerController *_tzImagePickerVc = (TZImagePickerController *)self.navigationController;
     TZAssetModel *model = _models[self.currentIndex];
@@ -561,7 +571,7 @@
     } else {
         [_doneButton setTitle:_tzImagePickerVc.doneBtnTitleStr forState:UIControlStateNormal];
     }
-
+    [self updateDoneBtnSize];
     _numberImageView.hidden = (_tzImagePickerVc.selectedModels.count <= 0 || _isHideNaviBar || _isCropImage);
     _numberLabel.hidden = (_tzImagePickerVc.selectedModels.count <= 0 || _isHideNaviBar || _isCropImage);
     
