@@ -230,9 +230,7 @@
             [_settingBtn addTarget:self action:@selector(settingBtnClick) forControlEvents:UIControlEventTouchUpInside];
             [self.view addSubview:_settingBtn];
             
-            if ([[TZImageManager manager] authorizationStatusAuthorized]) {
-                _timer = [NSTimer scheduledTimerWithTimeInterval:0.2 target:self selector:@selector(observeAuthrizationStatusChange) userInfo:nil repeats:NO];
-            }
+            _timer = [NSTimer scheduledTimerWithTimeInterval:0.2 target:self selector:@selector(observeAuthrizationStatusChange) userInfo:nil repeats:NO];
         } else {
             [self pushPhotoPickerVc];
         }
@@ -403,9 +401,7 @@
             [_settingBtn addTarget:self action:@selector(settingBtnClick) forControlEvents:UIControlEventTouchUpInside];
             [self.view addSubview:_settingBtn];
             
-            if ([[TZImageManager manager] authorizationStatusAuthorized]) {
-                _timer = [NSTimer scheduledTimerWithTimeInterval:0.2 target:self selector:@selector(observeAuthrizationStatusChange) userInfo:nil repeats:NO];
-            }
+            _timer = [NSTimer scheduledTimerWithTimeInterval:0.2 target:self selector:@selector(observeAuthrizationStatusChange) userInfo:nil repeats:NO];
         } else {
             [self pushPhotoPickerVc];
         }
@@ -467,9 +463,8 @@
             [_settingBtn addTarget:self action:@selector(settingBtnClick) forControlEvents:UIControlEventTouchUpInside];
             [self.view addSubview:_settingBtn];
             
-            if ([[TZImageManager manager] authorizationStatusAuthorized]) {
-                _timer = [NSTimer scheduledTimerWithTimeInterval:0.2 target:self selector:@selector(observeAuthrizationStatusChange) userInfo:nil repeats:NO];
-            }
+            _timer = [NSTimer scheduledTimerWithTimeInterval:0.2 target:self selector:@selector(observeAuthrizationStatusChange) userInfo:nil repeats:NO];
+
         } else {
             [self pushPhotoPickerVc];
         }
