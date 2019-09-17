@@ -39,6 +39,8 @@
 
 /// Sort photos ascending by modificationDate，Default is YES
 /// 对照片排序，按修改时间升序，默认是YES。如果设置为NO,最新的照片会显示在最前面，内部的拍照按钮会排在第一个
+/// 没有使用创建时间排序，默认排序规则
+/// 最新更新的在最前边，然后手动翻转到最后面使之与“相机胶卷”以及常用App，如“QQ”、“微信”中查看的图片顺序和内容保持一致
 @property (nonatomic, assign) BOOL sortAscendingByModificationDate;
 
 /// Minimum selectable photo width, Default is 0
