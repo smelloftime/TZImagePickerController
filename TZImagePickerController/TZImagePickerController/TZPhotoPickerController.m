@@ -656,13 +656,12 @@ static CGFloat itemMargin = 5;
 
             NSArray *timeArr = [model.timeLength componentsSeparatedByString:@":"];
             if (timeArr.count == 2 && (([timeArr[1] integerValue] == 0 && [timeArr[0] integerValue] <= 5) || ([timeArr[1] integerValue] > 0 && [timeArr[0] integerValue] <= 4)) && tzImagePickerVc.directEditVideo == false) {
-                UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"" message:@"温馨提示" preferredStyle:UIAlertControllerStyleActionSheet];
-                UIAlertAction *uploadAction = [UIAlertAction actionWithTitle:@"快速上传(支持5分钟以内)" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                VoidBlock quickUploadBlock = ^{
                     NSLog(@"uploadAction");
                     [tzImagePickerVc showProgressHUD];
                     // 禁止用户操作
                     tzImagePickerVc.view.userInteractionEnabled = NO;
-
+                    
                     PHVideoRequestOptions* options = [[PHVideoRequestOptions alloc] init];
                     /// 设置为当前版本，包含用户编辑后信息，比如滤镜
                     options.version = PHVideoRequestOptionsVersionCurrent;
@@ -748,8 +747,8 @@ static CGFloat itemMargin = 5;
                             [tzImagePickerVc showAlertWithTitle:@"封面获取出问题啦，请手动编辑"];
                         }
                     }];
-                }];
-                UIAlertAction *editAction = [UIAlertAction actionWithTitle:@"编辑后上传" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                };
+                VoidBlock editBlock = ^{
                     NSLog(@"editAction");
                     TZImagePickerController *imagePickerVc = (TZImagePickerController *)self.navigationController;
                     ZLEditVideoController *editVC = [[ZLEditVideoController alloc]init];
@@ -771,14 +770,27 @@ static CGFloat itemMargin = 5;
                         [self finishEditVideoByImagePickerVC:weakImagePickerVc coverImage:coverImage videoURL:videoPath];
                     };
                     [self.navigationController pushViewController:editVC animated:YES];
-                }];
-                UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-                    NSLog(@"cancel");
-                }];
-                [alertController addAction:uploadAction];
-                [alertController addAction:editAction];
-                [alertController addAction:cancelAction];
-                [self presentViewController:alertController animated:YES completion:nil];
+                };
+                TZImagePickerController *imagePickerVc = (TZImagePickerController *)self.navigationController;
+                BOOL canResponds = [imagePickerVc.pickerDelegate respondsToSelector:@selector(selectedVideoShowCustomActionSheet:actionTitles:quickUploadBlock:editBlock:)];
+                if (canResponds){
+                    [imagePickerVc.pickerDelegate selectedVideoShowCustomActionSheet:@"温馨提示" actionTitles:@[@"快速上传(支持5分钟以内)", @"编辑后上传"] quickUploadBlock:quickUploadBlock editBlock:editBlock];
+                } else {
+                    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"" message:@"温馨提示" preferredStyle:UIAlertControllerStyleActionSheet];
+                    UIAlertAction *uploadAction = [UIAlertAction actionWithTitle:@"快速上传(支持5分钟以内)" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                        quickUploadBlock();
+                    }];
+                    UIAlertAction *editAction = [UIAlertAction actionWithTitle:@"编辑后上传" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                        editBlock();
+                    }];
+                    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+                        NSLog(@"cancel");
+                    }];
+                    [alertController addAction:uploadAction];
+                    [alertController addAction:editAction];
+                    [alertController addAction:cancelAction];
+                    [self presentViewController:alertController animated:YES completion:nil];
+                }
             } else {
                 TZImagePickerController *imagePickerVc = (TZImagePickerController *)self.navigationController;
                 ZLEditVideoController *editVC = [[ZLEditVideoController alloc]init];
