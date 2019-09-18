@@ -355,6 +355,9 @@
 
 // 点击了拍照相册内的拍照按钮
 - (void)imagePickerControllerDidClickTakePhotoBtn:(TZImagePickerController *)picker;
+
+typedef void (^VoidBlock)(void);
+- (void)selectedVideoShowCustomActionSheet:(NSString *)message actionTitles:(NSArray<NSString *> *)actionTitles quickUploadBlock:(VoidBlock)quickUploadBlock editBlock:(VoidBlock)editBlock;
 @end
 
 
