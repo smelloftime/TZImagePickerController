@@ -467,8 +467,8 @@
 {
     [super viewWillDisappear:animated];
     [self stopTimer];
-    self.navigationController.navigationBarHidden = NO;
     [UIApplication sharedApplication].statusBarHidden = self.appStatusBarHidden;
+    self.navigationController.navigationBarHidden = NO;
 }
 
 - (void)viewDidLayoutSubviews
