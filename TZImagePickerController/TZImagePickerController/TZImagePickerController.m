@@ -72,6 +72,7 @@
         [UIApplication sharedApplication].statusBarHidden = NO;
     }
     self.selectedAssetIds = [NSMutableArray array];
+//    self.modalPresentationStyle = UIModalPresentationFullScreen;
 }
 
 - (void)setNaviBgColor:(UIColor *)naviBgColor {
