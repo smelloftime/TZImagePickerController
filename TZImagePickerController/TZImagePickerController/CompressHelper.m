@@ -196,6 +196,9 @@
             }
                 break;
             default:
+                if ([[NSFileManager defaultManager] fileExistsAtPath:setting.outputURL.relativePath]) {
+                    [[NSFileManager defaultManager] removeItemAtURL:setting.outputURL error:nil];
+                }
                 dispatch_async(dispatch_get_main_queue(), ^{
                     handler([NSError errorWithDomain:@"TZImagePickerController.CompressHelper"
                                                 code:0

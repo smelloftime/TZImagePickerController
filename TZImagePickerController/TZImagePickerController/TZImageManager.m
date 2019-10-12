@@ -596,7 +596,7 @@ static dispatch_once_t onceToken;
 
 - (void)compressionVideoWithVideoURL:(NSURL *)videoURL quality:(VideoQualityType)quality success:(void (^)(NSString *outputPath))success failure:(void (^)(NSString *errorMessage, NSError *error))failure {
     NSDateFormatter *formater = [[NSDateFormatter alloc] init];
-    [formater setDateFormat:@"yyyy-MM-dd-HH:mm:ss-SSS"];
+    [formater setDateFormat:@"yyyy-MM-dd-HH-mm-ss-SSS"];
     NSString *outputPath = [NSHomeDirectory() stringByAppendingFormat:@"/tmp/video-%@.mp4", [formater stringFromDate:[NSDate date]]];
     if (videoURL && videoURL.lastPathComponent) {
         outputPath = [outputPath stringByReplacingOccurrencesOfString:@".mp4" withString:[NSString stringWithFormat:@"-%@", videoURL.lastPathComponent]];
@@ -610,6 +610,7 @@ static dispatch_once_t onceToken;
         if (error) {
             failure(error.localizedDescription, error);
         } else {
+            [[NSFileManager defaultManager] removeItemAtURL:videoURL error:nil];
             success(outputPath);
         }
     }];
