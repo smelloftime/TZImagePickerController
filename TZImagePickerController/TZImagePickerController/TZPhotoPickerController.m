@@ -463,9 +463,11 @@ static CGFloat itemMargin = 5;
             } progressHandler:^(double progress, NSError * _Nonnull error, BOOL * _Nonnull stop, NSDictionary * _Nonnull info) {
                 // 如果图片正在从iCloud同步中,提醒用户
                 if (progress < 1 && havenotShowAlert && !alertView) {
-                    [tzImagePickerVc hideProgressHUD];
-                    alertView = [tzImagePickerVc showAlertWithTitle:[NSBundle tz_localizedStringForKey:@"Synchronizing photos from iCloud"]];
-                    havenotShowAlert = NO;
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            [tzImagePickerVc hideProgressHUD];
+                            alertView = [tzImagePickerVc showAlertWithTitle:[NSBundle tz_localizedStringForKey:@"Synchronizing photos from iCloud"]];
+                            havenotShowAlert = NO;
+                        });
                     return;
                 }
                 if (progress >= 1) {
@@ -729,22 +731,29 @@ static CGFloat itemMargin = 5;
                                             });
                                         } else {
                                             // 允许用户操作
-                                            tzImagePickerVc.view.userInteractionEnabled = YES;
-                                            [tzImagePickerVc showAlertWithTitle:@"封面获取出问题啦，请手动编辑"];
+                                            dispatch_async(dispatch_get_main_queue(), ^{
+                                                tzImagePickerVc.view.userInteractionEnabled = YES;
+                                                [tzImagePickerVc showAlertWithTitle:@"封面获取出问题啦，请手动编辑"];
+                                            });
                                         }
                                     }];
                                 } failure:^(NSString *errorMessage, NSError *error) {
                                     // 允许用户操作
-                                    tzImagePickerVc.view.userInteractionEnabled = YES;
-                                    [tzImagePickerVc hideProgressHUD];
-                                    [tzImagePickerVc showAlertWithTitle:@"自动导出出问题啦，请手动编辑"];
+                                    dispatch_async(dispatch_get_main_queue(), ^{
+                                        tzImagePickerVc.view.userInteractionEnabled = YES;
+                                        [tzImagePickerVc hideProgressHUD];
+                                        [tzImagePickerVc showAlertWithTitle:@"自动导出出问题啦，请手动编辑"];
+                                    });
+                                  
                                 }];
                             }];
                         } else {
                             // 允许用户操作
-                            tzImagePickerVc.view.userInteractionEnabled = YES;
-                            [tzImagePickerVc hideProgressHUD];
-                            [tzImagePickerVc showAlertWithTitle:@"封面获取出问题啦，请手动编辑"];
+                            dispatch_async(dispatch_get_main_queue(), ^{
+                                tzImagePickerVc.view.userInteractionEnabled = YES;
+                                [tzImagePickerVc hideProgressHUD];
+                                [tzImagePickerVc showAlertWithTitle:@"封面获取出问题啦，请手动编辑"];
+                            });
                         }
                     }];
                 };
