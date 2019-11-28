@@ -25,9 +25,12 @@
 @property(nonatomic,strong)UIImage *image;
 
 /**
- 裁剪区域
+ [兼容API]裁剪区域 默认转换为宽高比例，返回指定比例不确定分辨率的图片
  */
 @property(nonatomic,assign)CGSize cropSize;
+/// 最大裁剪宽高px: 返回最大指定分辨率的图片。注：该参数覆盖宽高比配置
+@property(nonatomic,assign)CGSize cropMaxSize;
+
 /*
  顶部title
  */

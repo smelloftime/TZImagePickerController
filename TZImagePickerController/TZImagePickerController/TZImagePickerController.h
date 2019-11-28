@@ -258,6 +258,9 @@
 @property (assign, nonatomic) BOOL isSquare;
 /// 裁剪size,圆形裁剪则短边裁剪半径
 @property (assign, nonatomic) CGSize clipSize;
+/// 最大裁剪宽高px: 返回最大指定分辨率的图片。注：该参数覆盖宽高比配置
+@property(nonatomic,assign)CGSize cropMaxSize;
+
 ///是否需要裁剪
 @property (assign, nonatomic) BOOL shouldPick;
 ///顶部title标题
