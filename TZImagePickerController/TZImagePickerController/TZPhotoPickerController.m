@@ -867,9 +867,8 @@ static CGFloat itemMargin = 5;
                 //设置代理
                 imageBrowser.delegate = self;
                 if (tzImagePickerVc.isSquare) {
-                    if (tzImagePickerVc.clipSize.height > 0 && tzImagePickerVc.clipSize.width > 0) {
-                        CGFloat clipR = MIN(tzImagePickerVc.clipSize.height, tzImagePickerVc.clipSize.width);
-                        imageBrowser.cropSize  = CGSizeMake(clipR, clipR);
+                    if (tzImagePickerVc.cropMaxSize.height > 0 && tzImagePickerVc.cropMaxSize.width > 0) {
+                        imageBrowser.cropMaxSize  = tzImagePickerVc.cropMaxSize;
                     } else {
                         imageBrowser.cropSize = CGSizeMake(UIScreen.mainScreen.bounds.size.width - 80, UIScreen.mainScreen.bounds.size.width - 80);
                     }
@@ -1194,9 +1193,8 @@ static CGFloat itemMargin = 5;
                         //设置代理
                         imageBrowser.delegate = self;
                         if (tzImagePickerVc.isSquare) {
-                            if (tzImagePickerVc.clipSize.height > 0 && tzImagePickerVc.clipSize.width > 0) {
-                                CGFloat clipR = MIN(tzImagePickerVc.clipSize.height, tzImagePickerVc.clipSize.width);
-                                imageBrowser.cropSize  = CGSizeMake(clipR, clipR);
+                            if (tzImagePickerVc.cropMaxSize.height > 0 && tzImagePickerVc.cropMaxSize.width > 0) {
+                                imageBrowser.cropMaxSize  = tzImagePickerVc.cropMaxSize;
                             } else {
                                 imageBrowser.cropSize = CGSizeMake(UIScreen.mainScreen.bounds.size.width, UIScreen.mainScreen.bounds.size.width / 2.0);
                             }

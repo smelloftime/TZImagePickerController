@@ -156,14 +156,6 @@
     shapeLayer.path = alphaPath.CGPath;
     shapeLayer.fillRule = kCAFillRuleEvenOdd;
     self.overLayView.layer.mask = shapeLayer;
-    
-    //裁剪框
-    UIBezierPath *cropPath = [UIBezierPath bezierPathWithRect:CGRectMake(_cropFrame.origin.x-1, _cropFrame.origin.y-1, _cropFrame.size.width+2, _cropFrame.size.height+2)];
-    CAShapeLayer *cropLayer = [CAShapeLayer layer];
-    cropLayer.path = cropPath.CGPath;
-    cropLayer.fillColor = [UIColor whiteColor].CGColor;
-    cropLayer.strokeColor = [UIColor whiteColor].CGColor;
-//    [self.overLayView.layer addSublayer:cropLayer];
 }
 
 //圆形裁剪区域
@@ -229,13 +221,19 @@
     UIImage* smallImage = [UIImage imageWithCGImage:subImageRef];
     CGImageRelease(subImageRef);
     UIGraphicsEndImageContext();
-    
+
     //是否需要圆形图片
     if (self.isRound) {
         //将图片裁剪成圆形
         smallImage = [self clipCircularImage:smallImage];
     }
-    return smallImage;
+    /// 这个地方是大分辨率的原图
+    /// 上一个页面只是配置了一个宽高比，没有具体的宽高像素
+    /// 宽高比和缩放的比例会出现 很大的图
+    if (self.cropMaxSize.width == 0 || self.cropMaxSize.height == 0) {
+        return smallImage;
+    }
+    return [self scaleImage:smallImage toSize: self.cropMaxSize];
 }
 
 //将图片裁剪成圆形
@@ -256,7 +254,18 @@
     
     return  newImage;
 }
-
+/// 压缩图片比例
+- (UIImage*)scaleImage:(UIImage*)image toSize:(CGSize)toSize {
+    if (image.size.width <= toSize.width && image.size.height <= toSize.height) {
+        return image;
+    }
+    UIGraphicsBeginImageContext(toSize);
+    CGRect myRect = CGRectMake(0 , 0, toSize.width ,  toSize.height);
+    [image drawInRect:myRect];
+    UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return newImage;
+}
 #pragma mark - UIScrollViewDelegate(Zoom)
 // 返回要在ScrollView中缩放的控件
 -(UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView{
@@ -333,12 +342,33 @@
 
 #pragma mark - Public
 -(void)setCropSize:(CGSize)cropSize{
-    _cropSize = cropSize;
+    CGFloat maxWidth = UIScreen.mainScreen.bounds.size.width - 20 * 2;
+    CGFloat maxHeight = UIScreen.mainScreen.bounds.size.height - self.navView.frame.origin.y - self.navView.frame.size.height;
+    CGFloat maxAscept = maxWidth / maxHeight;
+    CGFloat scale = cropSize.width / cropSize.height;
+
+    CGFloat cropHeight = maxHeight;
+    //maxWidth * scale;
+    CGFloat cropWidth = maxWidth;
+    if (maxAscept > scale) {
+        cropHeight = maxHeight;
+        cropWidth = cropHeight * scale;
+    } else {
+        cropWidth = maxWidth;
+        cropHeight = cropWidth / scale;
+    }
+
+    _cropSize = CGSizeMake(cropWidth, cropHeight);
     
     //设置裁剪框区域
-    _cropFrame = CGRectMake((self.view.frame.size.width-cropSize.width)/2,(self.view.frame.size.height-cropSize.height)/2,cropSize.width, cropSize.height);
-    
+    _cropFrame = CGRectMake((self.view.frame.size.width-_cropSize.width)/2,(self.view.frame.size.height-_cropSize.height)/2,_cropSize.width, _cropSize.height);
+
     [self.view setNeedsLayout];
+}
+
+-(void)setCropMaxSize:(CGSize)cropMaxSize {
+    _cropMaxSize = cropMaxSize;
+    self.cropSize = cropMaxSize;
 }
 
 -(void)setImage:(UIImage *)image{
