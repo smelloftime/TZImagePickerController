@@ -260,10 +260,11 @@
     } else {
         layout.mChannelLayoutTag = kAudioChannelLayoutTag_Mono;
     }
+    /// audioBitRate固定70000
     NSDictionary *compressionSetting = @{
                                          AVFormatIDKey: @(kAudioFormatMPEG4AAC),
-                                         AVEncoderBitRateKey: @(fminf(setting.audioBitRate, audioTrack.estimatedDataRate)),
                                          AVSampleRateKey: @(MIN(setting.audioSampleRate, (int)audioTrack.naturalTimeScale)),
+                                         AVEncoderBitRateKey : @(70000),
                                          AVChannelLayoutKey:[NSData dataWithBytes:&layout length:sizeof(layout)],
                                          AVNumberOfChannelsKey: @(channelCount)
                                          };
