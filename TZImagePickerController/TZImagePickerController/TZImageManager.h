@@ -98,7 +98,10 @@
 /// Deprecated, Use -getVideoOutputPathWithAsset:failure:success:
 - (void)getVideoOutputPathWithAsset:(PHAsset *)asset completion:(void (^)(NSString *outputPath))completion __attribute__((deprecated("Use -getVideoOutputPathWithAsset:failure:success:")));
 
-- (void)compressionVideoWithVideoURL:(NSURL *)videoURL quality:(VideoQualityType)quality success:(void (^)(NSString *outputPath))success failure:(void (^)(NSString *errorMessage, NSError *error))failure;
+/// 压缩导出后的视频
+- (void)compressionVideoWithVideoURL:(NSURL *)videoURL quality:(VideoQualityType)quality success:(void (^)(NSString *outputPath))success compressProgressHandeler:(void (^)(float progress))progressHandeler failure:(void (^)(NSString *errorMessage, NSError *error))failure;
+/// 通过asst直接压缩视频
+- (void)compressionVideoWithVideoAsset:(AVAsset *)videoAsset quality:(VideoQualityType)quality success:(void (^)(NSString *outputPath))success compressProgressHandeler:(void (^)(float progress))progressHandeler failure:(void (^)(NSString *errorMessage, NSError *error))failure;
 
 /// Get photo bytes 获得一组照片的大小
 - (void)getPhotosBytesWithArray:(NSArray *)photos completion:(void (^)(NSString *totalBytes))completion;

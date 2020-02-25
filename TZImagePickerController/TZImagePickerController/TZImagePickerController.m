@@ -731,7 +731,21 @@
         [strongSelf hideProgressHUD];
     });
 }
-
+- (void)updateProgressInfo:(NSString*)progress {
+    if ([[NSThread currentThread] isMainThread] == false) {
+            dispatch_sync(dispatch_get_main_queue(), ^{
+            if (_progressHUD == nil) {
+               [self showProgressHUD];
+            }
+            _HUDLabel.text = progress;
+        });
+    } else {
+        if (_progressHUD == nil) {
+           [self showProgressHUD];
+        }
+        _HUDLabel.text = progress;
+    }
+}
 - (void)hideProgressHUD {
     if (_progressHUD) {
         [_HUDIndicatorView stopAnimating];

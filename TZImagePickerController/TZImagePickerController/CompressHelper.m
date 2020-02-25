@@ -19,24 +19,22 @@
         _outputURL = outputURL;
         _videoQuality = VideoQualityTypeHigh;
         _videoFrameRate = 30;
-        _audioBitRate = 96000;
         _audioSampleRate = 44100;
+        _videoBitRate = 3100 * 1000;
     }
     return self;
 }
-
-- (int)calculateAverageBitRateByVideoTrack:(AVAssetTrack*)videoTrack videoSize:(CGSize)videoSize  {
-    CGFloat maxFrameRate = (CGFloat)((int)videoTrack.minFrameDuration.timescale / videoTrack.minFrameDuration.value);
-    CGSize naturalSize = videoTrack.naturalSize;
-    //假设帧率减小清晰度不变的情况下(增加码率)，根据原视频质量减小码率
-    CGFloat factor = fmin((videoSize.width * videoSize.height) / (naturalSize.width * naturalSize.height) * maxFrameRate / (_videoFrameRate > 0 ? _videoFrameRate : maxFrameRate), 1.0);
-    CGFloat ouputVideoBitRate = factor * (CGFloat)videoTrack.estimatedDataRate * [self getExtraCompressionFactorByVideoTrack:videoTrack videoSize:videoSize];
-    return (int)ouputVideoBitRate;
-}
-
-- (CGFloat)getExtraCompressionFactorByVideoTrack:(AVAssetTrack *)videoTrack videoSize:(CGSize)videoSize  {
-    CGFloat factor = 3.0 / ((CGFloat)videoTrack.estimatedDataRate / (videoSize.width * videoSize.height));//参看往上中画质码率:像素=3:1
-    return fmin(factor, 1.0);
+- (instancetype)initWithInputAsst:(AVAsset *)inputAsset outputURL:(NSURL *)outputURL {
+    self = [super init];
+       if (self) {
+           _inputAsset = inputAsset;
+           _outputURL = outputURL;
+           _videoQuality = VideoQualityTypeHigh;
+           _videoFrameRate = 30;
+           _audioSampleRate = 44100;
+           _videoBitRate = 3100 * 1000;
+       }
+       return self;
 }
 
 - (CGSize)getVideoSizeByVideoTrack:(AVAssetTrack *)videoTrack  {
@@ -74,13 +72,22 @@
 
 @implementation CompressHelper
 
-+ (void)compressVideoBySetting:(CompressSetting *)setting completionHandler:(void (^)(NSError * _Nullable error))handler {
++ (void)compressVideoBySetting:(CompressSetting *)setting completionHandler:(void (^)(NSError * _Nullable error))handler compressProgressHandeler:(void (^)(float progress))progressHandeler {
     if ([[NSFileManager defaultManager] fileExistsAtPath:[setting.outputURL path]]) {
         NSError *error;
         [[NSFileManager defaultManager] removeItemAtURL:setting.outputURL error:&error];
     }
     dispatch_queue_t inputSerialQueue = dispatch_queue_create("inputSerialQueue", DISPATCH_QUEUE_SERIAL);
-    AVAsset *asset = [AVAsset assetWithURL:setting.inputURL];
+    AVAsset *asset;
+    if (setting.inputURL != nil) {
+        asset = [AVAsset assetWithURL:setting.inputURL];
+    } else if (setting.inputAsset != nil) {
+        asset = setting.inputAsset;
+    } else {
+        /// 初始化异常
+        handler([[NSError alloc] initWithDomain:@"初始化资源没有配置正确" code:0 userInfo:nil]);
+        return;
+    }
     NSError *error;
     AVAssetReader *assetReader = [AVAssetReader assetReaderWithAsset:asset error:&error];
     if (error) {
@@ -144,11 +151,16 @@
     [assetWriter startSessionAtSourceTime:kCMTimeZero];
     dispatch_group_t group = dispatch_group_create();
     dispatch_group_enter(group);
+    /// 总时长
+    CGFloat totalSeconds = CMTimeGetSeconds(asset.duration);
     [videoInput requestMediaDataWhenReadyOnQueue:inputSerialQueue usingBlock:^{
         while (videoInput.isReadyForMoreMediaData) {
             CMSampleBufferRef sampleBuffer;
             if (assetReader.status == AVAssetReaderStatusReading && (sampleBuffer = [videoOutput copyNextSampleBuffer])) {
                 BOOL result = [videoInput appendSampleBuffer:sampleBuffer];
+                CMTime currentTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
+                CGFloat currentSeconds = CMTimeGetSeconds(currentTime);
+                progressHandeler(currentSeconds / totalSeconds);
                 CFRelease(sampleBuffer);
                 if (!result) {
                     [assetReader cancelReading];
@@ -181,6 +193,7 @@
             }
         }
     }];
+
     dispatch_group_notify(group, dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0), ^{
         if (assetReader.status == AVAssetReaderStatusReading) {
             [assetReader cancelReading];
@@ -217,9 +230,8 @@
 
 + (NSDictionary *)videoWriterOutputSettingsByCompressSetting:(CompressSetting *)setting videoTrack:(AVAssetTrack *)videoTrack {
     CGSize videoSize = [setting getVideoSizeByVideoTrack:videoTrack];
-    int bitRate = [setting calculateAverageBitRateByVideoTrack:videoTrack videoSize:videoSize];
     NSDictionary *compressionPropertier = @{
-                                            AVVideoAverageBitRateKey: @(bitRate),
+                                            AVVideoAverageBitRateKey: @(setting.videoBitRate),
                                             AVVideoProfileLevelKey: (NSString *)kVTProfileLevel_H264_High_3_1,
                                             AVVideoAllowFrameReorderingKey: @(YES)
                                             };
@@ -260,10 +272,11 @@
     } else {
         layout.mChannelLayoutTag = kAudioChannelLayoutTag_Mono;
     }
+    /// audioBitRate固定70000
     NSDictionary *compressionSetting = @{
                                          AVFormatIDKey: @(kAudioFormatMPEG4AAC),
-                                         AVEncoderBitRateKey: @(fminf(setting.audioBitRate, audioTrack.estimatedDataRate)),
                                          AVSampleRateKey: @(MIN(setting.audioSampleRate, (int)audioTrack.naturalTimeScale)),
+                                         AVEncoderBitRateKey : @(70000),
                                          AVChannelLayoutKey:[NSData dataWithBytes:&layout length:sizeof(layout)],
                                          AVNumberOfChannelsKey: @(channelCount)
                                          };

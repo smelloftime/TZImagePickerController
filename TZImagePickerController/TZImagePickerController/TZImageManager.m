@@ -594,7 +594,7 @@ static dispatch_once_t onceToken;
     [self getVideoOutputPathWithAsset:asset success:completion failure:nil];
 }
 
-- (void)compressionVideoWithVideoURL:(NSURL *)videoURL quality:(VideoQualityType)quality success:(void (^)(NSString *outputPath))success failure:(void (^)(NSString *errorMessage, NSError *error))failure {
+- (void)compressionVideoWithVideoURL:(NSURL *)videoURL quality:(VideoQualityType)quality success:(void (^)(NSString *outputPath))success compressProgressHandeler:(void (^)(float progress))progressHandeler failure:(void (^)(NSString *errorMessage, NSError *error))failure {
     NSDateFormatter *formater = [[NSDateFormatter alloc] init];
     [formater setDateFormat:@"yyyy-MM-dd-HH-mm-ss-SSS"];
     NSString *outputPath = [NSHomeDirectory() stringByAppendingFormat:@"/tmp/video-%@.mp4", [formater stringFromDate:[NSDate date]]];
@@ -613,6 +613,28 @@ static dispatch_once_t onceToken;
             [[NSFileManager defaultManager] removeItemAtURL:videoURL error:nil];
             success(outputPath);
         }
+    } compressProgressHandeler:^(float progress) {
+        progressHandeler(progress);
+    }];
+}
+
+- (void)compressionVideoWithVideoAsset:(AVAsset *)videoAsset quality:(VideoQualityType)quality success:(void (^)(NSString *outputPath))success compressProgressHandeler:(void (^)(float progress))progressHandeler failure:(void (^)(NSString *errorMessage, NSError *error))failure {
+    NSDateFormatter *formater = [[NSDateFormatter alloc] init];
+    [formater setDateFormat:@"yyyy-MM-dd-HH-mm-ss-SSS"];
+    NSString *outputPath = [NSHomeDirectory() stringByAppendingFormat:@"/tmp/video-%@.mp4", [formater stringFromDate:[NSDate date]]];
+    if (![[NSFileManager defaultManager] fileExistsAtPath:[NSHomeDirectory() stringByAppendingFormat:@"/tmp"]]) {
+        [[NSFileManager defaultManager] createDirectoryAtPath:[NSHomeDirectory() stringByAppendingFormat:@"/tmp"] withIntermediateDirectories:YES attributes:nil error:nil];
+    }
+    CompressSetting *setting = [[CompressSetting alloc] initWithInputAsst:videoAsset outputURL:[NSURL fileURLWithPath:outputPath]];
+    setting.videoQuality = quality;
+    [CompressHelper compressVideoBySetting:setting completionHandler:^(NSError * _Nullable error) {
+        if (error) {
+            failure(error.localizedDescription, error);
+        } else {
+            success(outputPath);
+        }
+    } compressProgressHandeler:^(float progress) {
+        progressHandeler(progress);
     }];
 }
 
