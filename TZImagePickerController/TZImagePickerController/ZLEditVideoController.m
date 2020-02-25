@@ -916,3 +916,85 @@ static const char _ZLOperationCellKey;
 */
 
 @end
+
+/// 视频导出
+@implementation ZLVideoExportTool
+
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            self.updateExpProgressTimer = [NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(updateExpProgressTimerAction) userInfo:nil repeats:YES];
+            self.updateExpProgressTimer.fireDate = NSDate.distantFuture;
+            [[NSRunLoop mainRunLoop] addTimer:self.updateExpProgressTimer forMode:NSRunLoopCommonModes];
+        });
+    }
+    return self;
+}
+- (void)dealloc
+{
+    [self.updateExpProgressTimer invalidate];
+    self.updateExpProgressTimer = nil;
+}
+
+- (void)export:(AVAsset *)asset range:(CMTimeRange)range complete:(void (^)(NSString *exportFilePath, NSError *error))complete
+{
+    NSString *exportFilePath = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.%@",@"exportVideo",@"mp4"]];
+    if ([[NSFileManager defaultManager] fileExistsAtPath:exportFilePath]) {
+        // 移除上一个
+        NSError *removeErr;
+        [[NSFileManager defaultManager] removeItemAtPath:exportFilePath error: &removeErr];
+    }
+    self.exportSession = [[AVAssetExportSession alloc] initWithAsset:asset presetName:AVAssetExportPreset1280x720];
+    
+    self.updateExpProgressTimer.fireDate = [[NSDate alloc] initWithTimeIntervalSinceNow:0];
+    [self.updateExpProgressTimer fire];
+    NSURL *exportFileUrl = [NSURL fileURLWithPath:exportFilePath];
+    NSLog(@"exportFileUrl -%@", exportFileUrl.absoluteString);
+    self.exportSession.outputURL = exportFileUrl;
+    self.exportSession.outputFileType = AVFileTypeMPEG4;
+    if (range.duration.value > 0) {
+        self.exportSession.timeRange = range;
+    }
+
+    [self.exportSession exportAsynchronouslyWithCompletionHandler:^{
+        BOOL suc = NO;
+        switch ([self.exportSession status]) {
+            case AVAssetExportSessionStatusFailed:
+                NSLog(@"Export failed: %@", [[self.exportSession error] localizedDescription]);
+                break;
+            case AVAssetExportSessionStatusCancelled:
+                NSLog(@"Export canceled");
+                break;
+
+            case AVAssetExportSessionStatusCompleted:{
+                NSLog(@"Export completed");
+                suc = YES;
+            }
+                break;
+
+            default:
+                NSLog(@"Export other");
+                break;
+        }
+
+        if (complete) {
+            [self.updateExpProgressTimer invalidate];
+            self.updateExpProgressTimer = nil;
+            complete(suc?exportFilePath:nil, suc ? nil: self.exportSession.error);
+            if (!suc) {
+                [self.exportSession cancelExport];
+            }
+        }
+    }];
+}
+
+- (void)updateExpProgressTimerAction
+{
+    NSLog([NSString stringWithFormat:@"正在导出 %f", self.exportSession.progress]);
+    if (self.progressHandeler) {
+        self.progressHandeler(self.exportSession.progress);
+    }
+}
+@end

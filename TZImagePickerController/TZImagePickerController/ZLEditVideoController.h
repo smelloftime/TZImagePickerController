@@ -26,3 +26,14 @@
 - (void)export:(AVAsset *)asset range:(CMTimeRange)range complete:(void (^)(NSString *exportFilePath, NSError *error))complete;
 
 @end
+
+@interface ZLVideoExportTool : NSObject
+
+/// 更新导出进度的timer
+@property (nonatomic, strong) NSTimer* updateExpProgressTimer;
+@property (nonatomic, strong) AVAssetExportSession *exportSession;
+@property (nonatomic, copy) void(^progressHandeler)(float progress);
+
+- (void)export:(AVAsset *)asset range:(CMTimeRange)range complete:(void (^)(NSString *exportFilePath, NSError *error))complete;
+
+@end
