@@ -656,142 +656,97 @@ static CGFloat itemMargin = 5;
             // 先判断试是否是低于5min的视频, 同时没有开启直接编辑属性
             // 小于等于5min弹窗提示支持快速上传，以及编辑后上传
             // 大于5min，直接进入编辑页面
+            VoidBlock quickUploadBlock = ^{
+                NSLog(@"uploadAction");
+                [tzImagePickerVc showProgressHUD];
+                // 禁止用户操作
+                tzImagePickerVc.view.userInteractionEnabled = NO;
+                
+                PHVideoRequestOptions* options = [[PHVideoRequestOptions alloc] init];
+                /// 设置为当前版本，包含用户编辑后信息，比如滤镜
+                options.version = PHVideoRequestOptionsVersionCurrent;
+                options.deliveryMode = PHVideoRequestOptionsDeliveryModeAutomatic;
+                options.networkAccessAllowed = YES;
+                [[PHImageManager defaultManager] requestAVAssetForVideo:model.asset options:options resultHandler:^(AVAsset * _Nullable asset, AVAudioMix * _Nullable audioMix, NSDictionary * _Nullable info) {
+                    if ([asset isKindOfClass:[AVURLAsset class]]) {
+                        [[[TZImageManager alloc] init] compressionVideoWithVideoAsset:asset quality:VideoQualityTypeHigh success:^(NSString *outputPath) {
+                            NSString *exportFilePath = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.%@",@"exportVideo",@"mp4"]];
+                            if ([[NSFileManager defaultManager] fileExistsAtPath:exportFilePath]) {
+                                // 移除上一个
+                                NSError *removeErr;
+                                [[NSFileManager defaultManager] removeItemAtPath:exportFilePath error: &removeErr];
+                            }
+                            // 把文件移动到同一的路径下，修改为同一的名称。方便后续的操作
+                            NSError *moveErr;
+                            [[NSFileManager defaultManager] moveItemAtURL:[NSURL fileURLWithPath:outputPath] toURL:[NSURL fileURLWithPath:exportFilePath] error:&moveErr];
+                            // 获取封面图
+                            PHVideoRequestOptions* options = [[PHVideoRequestOptions alloc] init];
+                            /// 设置为当前版本，包含用户编辑后信息，比如滤镜
+                            options.version = PHVideoRequestOptionsVersionCurrent;
+                            options.deliveryMode = PHVideoRequestOptionsDeliveryModeAutomatic;
+                            options.networkAccessAllowed = YES;
+                            [[PHImageManager defaultManager] requestAVAssetForVideo:model.asset options:options resultHandler:^(AVAsset * _Nullable asset, AVAudioMix * _Nullable audioMix, NSDictionary * _Nullable info) {
+                                AVAssetImageGenerator *generator = [[AVAssetImageGenerator alloc] initWithAsset:asset];
+                                generator.appliesPreferredTrackTransform = YES;
+                                generator.requestedTimeToleranceBefore = kCMTimeZero;
+                                generator.requestedTimeToleranceAfter = kCMTimeZero;
+                                generator.apertureMode = AVAssetImageGeneratorApertureModeProductionAperture;
+                                NSError *error = nil;
+                                UIImage *coverImage;
 
-            NSArray *timeArr = [model.timeLength componentsSeparatedByString:@":"];
-            if (timeArr.count == 2 && (([timeArr[1] integerValue] == 0 && [timeArr[0] integerValue] <= 5) || ([timeArr[1] integerValue] > 0 && [timeArr[0] integerValue] <= 4)) && tzImagePickerVc.directEditVideo == false) {
-                VoidBlock quickUploadBlock = ^{
-                    NSLog(@"uploadAction");
-                    [tzImagePickerVc showProgressHUD];
-                    // 禁止用户操作
-                    tzImagePickerVc.view.userInteractionEnabled = NO;
-                    
-                    PHVideoRequestOptions* options = [[PHVideoRequestOptions alloc] init];
-                    /// 设置为当前版本，包含用户编辑后信息，比如滤镜
-                    options.version = PHVideoRequestOptionsVersionCurrent;
-                    options.deliveryMode = PHVideoRequestOptionsDeliveryModeAutomatic;
-                    options.networkAccessAllowed = YES;
-                    [[PHImageManager defaultManager] requestAVAssetForVideo:model.asset options:options resultHandler:^(AVAsset * _Nullable asset, AVAudioMix * _Nullable audioMix, NSDictionary * _Nullable info) {
-                        if ([asset isKindOfClass:[AVURLAsset class]]) {
-                            [[[TZImageManager alloc] init] compressionVideoWithVideoAsset:asset quality:VideoQualityTypeHigh success:^(NSString *outputPath) {
-                                NSString *exportFilePath = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.%@",@"exportVideo",@"mp4"]];
-                                if ([[NSFileManager defaultManager] fileExistsAtPath:exportFilePath]) {
-                                    // 移除上一个
-                                    NSError *removeErr;
-                                    [[NSFileManager defaultManager] removeItemAtPath:exportFilePath error: &removeErr];
+                                CGFloat second = 0;
+                                for (int i = 0; i < 5; i ++) {
+                                    CGImageRef img = [generator copyCGImageAtTime:CMTimeMake(second * asset.duration.timescale, asset.duration.timescale) actualTime:NULL error:&error];
+                                    second = second + 0.2;
+                                    if (img != nil) {
+                                        coverImage = [UIImage imageWithCGImage:img];
+                                        break;
+                                    }
+                                    NSLog(@"error\n\n -%@", error);
                                 }
-                                // 把文件移动到同一的路径下，修改为同一的名称。方便后续的操作
-                                NSError *moveErr;
-                                [[NSFileManager defaultManager] moveItemAtURL:[NSURL fileURLWithPath:outputPath] toURL:[NSURL fileURLWithPath:exportFilePath] error:&moveErr];
-                                // 获取封面图
-                                PHVideoRequestOptions* options = [[PHVideoRequestOptions alloc] init];
-                                /// 设置为当前版本，包含用户编辑后信息，比如滤镜
-                                options.version = PHVideoRequestOptionsVersionCurrent;
-                                options.deliveryMode = PHVideoRequestOptionsDeliveryModeAutomatic;
-                                options.networkAccessAllowed = YES;
-                                [[PHImageManager defaultManager] requestAVAssetForVideo:model.asset options:options resultHandler:^(AVAsset * _Nullable asset, AVAudioMix * _Nullable audioMix, NSDictionary * _Nullable info) {
-                                    AVAssetImageGenerator *generator = [[AVAssetImageGenerator alloc] initWithAsset:asset];
-                                    generator.appliesPreferredTrackTransform = YES;
-                                    generator.requestedTimeToleranceBefore = kCMTimeZero;
-                                    generator.requestedTimeToleranceAfter = kCMTimeZero;
-                                    generator.apertureMode = AVAssetImageGeneratorApertureModeProductionAperture;
-                                    NSError *error = nil;
-                                    UIImage *coverImage;
-
-                                    CGFloat second = 0;
-                                    for (int i = 0; i < 5; i ++) {
-                                        CGImageRef img = [generator copyCGImageAtTime:CMTimeMake(second * asset.duration.timescale, asset.duration.timescale) actualTime:NULL error:&error];
-                                        second = second + 0.2;
-                                        if (img != nil) {
-                                            coverImage = [UIImage imageWithCGImage:img];
-                                            break;
-                                        }
-                                        NSLog(@"error\n\n -%@", error);
-                                    }
-                                    if (coverImage != nil && exportFilePath != nil) {
-                                        /// 切换到主线程
-                                        dispatch_sync(dispatch_get_main_queue(), ^{
-                                            // 允许用户操作
-                                            tzImagePickerVc.view.userInteractionEnabled = YES;
-                                            [tzImagePickerVc hideProgressHUD];
-                                            [tzImagePickerVc dismissViewControllerAnimated:YES completion:^{
-                                            if ([tzImagePickerVc.pickerDelegate respondsToSelector:@selector(imagePickerController:didFinishEditVideoCoverImage:videoURL:)]) {
-                                                [tzImagePickerVc.pickerDelegate imagePickerController:tzImagePickerVc didFinishEditVideoCoverImage:coverImage videoURL:[NSURL fileURLWithPath:exportFilePath]];
-                                            }
-                                            }];
-                                        });
-                                    } else {
+                                if (coverImage != nil && exportFilePath != nil) {
+                                    /// 切换到主线程
+                                    dispatch_sync(dispatch_get_main_queue(), ^{
                                         // 允许用户操作
-                                        dispatch_async(dispatch_get_main_queue(), ^{
-                                            tzImagePickerVc.view.userInteractionEnabled = YES;
-                                            [tzImagePickerVc showAlertWithTitle:@"封面获取出问题啦，请手动编辑"];
-                                        });
-                                    }
-                                }];
-                            } compressProgressHandeler:^(float progress) {
-                                NSString *info = [NSString stringWithFormat:@"当前进度:%ld%%", lround(progress * 100)];
-                                [tzImagePickerVc updateProgressInfo: info];
-                            } failure:^(NSString *errorMessage, NSError *error) {
-                                // 允许用户操作
-                                dispatch_async(dispatch_get_main_queue(), ^{
-                                    tzImagePickerVc.view.userInteractionEnabled = YES;
-                                    [tzImagePickerVc hideProgressHUD];
-                                    [tzImagePickerVc showAlertWithTitle:@"自动导出出问题啦，请手动编辑"];
-                                });
+                                        tzImagePickerVc.view.userInteractionEnabled = YES;
+                                        [tzImagePickerVc hideProgressHUD];
+                                        [tzImagePickerVc dismissViewControllerAnimated:YES completion:^{
+                                        if ([tzImagePickerVc.pickerDelegate respondsToSelector:@selector(imagePickerController:didFinishEditVideoCoverImage:videoURL:)]) {
+                                            [tzImagePickerVc.pickerDelegate imagePickerController:tzImagePickerVc didFinishEditVideoCoverImage:coverImage videoURL:[NSURL fileURLWithPath:exportFilePath]];
+                                        }
+                                        }];
+                                    });
+                                } else {
+                                    // 允许用户操作
+                                    dispatch_async(dispatch_get_main_queue(), ^{
+                                        tzImagePickerVc.view.userInteractionEnabled = YES;
+                                        [tzImagePickerVc showAlertWithTitle:@"封面获取出问题啦，请手动编辑"];
+                                    });
+                                }
                             }];
-                        } else {
+                        } compressProgressHandeler:^(float progress) {
+                            NSString *info = [NSString stringWithFormat:@"当前进度:%ld%%", lround(progress * 100)];
+                            [tzImagePickerVc updateProgressInfo: info];
+                        } failure:^(NSString *errorMessage, NSError *error) {
                             // 允许用户操作
                             dispatch_async(dispatch_get_main_queue(), ^{
                                 tzImagePickerVc.view.userInteractionEnabled = YES;
                                 [tzImagePickerVc hideProgressHUD];
-                                [tzImagePickerVc showAlertWithTitle:@"封面获取出问题啦，请手动编辑"];
+                                [tzImagePickerVc showAlertWithTitle:@"自动导出出问题啦，请手动编辑"];
                             });
-                        }
-                    }];
-                };
-                VoidBlock editBlock = ^{
-                    NSLog(@"editAction");
-                    TZImagePickerController *imagePickerVc = (TZImagePickerController *)self.navigationController;
-                    ZLEditVideoController *editVC = [[ZLEditVideoController alloc]init];
-                    if (imagePickerVc.videoEditVCbackImage) {
-                        editVC.backImage = imagePickerVc.videoEditVCbackImage;
+                        }];
+                    } else {
+                        // 允许用户操作
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            tzImagePickerVc.view.userInteractionEnabled = YES;
+                            [tzImagePickerVc hideProgressHUD];
+                            [tzImagePickerVc showAlertWithTitle:@"封面获取出问题啦，请手动编辑"];
+                        });
                     }
-                    if (imagePickerVc.mainColor) {
-                        editVC.mainColor = imagePickerVc.mainColor;
-                    }
-                    if (imagePickerVc.maxEditVideoTime > 0) {
-                        editVC.maxEditVideoTime = imagePickerVc.maxEditVideoTime;
-                    }
-                    if (imagePickerVc.minEditVideoTime > 0) {
-                        editVC.minEditVideoTime = imagePickerVc.minEditVideoTime;
-                    }
-                    editVC.asset = model.asset;
-                    __weak typeof(imagePickerVc) weakImagePickerVc = imagePickerVc;
-                    editVC.coverImageBlock = ^(UIImage *coverImage, NSURL *videoPath) {
-                        [self finishEditVideoByImagePickerVC:weakImagePickerVc coverImage:coverImage videoURL:videoPath];
-                    };
-                    [self.navigationController pushViewController:editVC animated:YES];
-                };
-                TZImagePickerController *imagePickerVc = (TZImagePickerController *)self.navigationController;
-                BOOL canResponds = [imagePickerVc.pickerDelegate respondsToSelector:@selector(selectedVideoShowCustomActionSheet:actionTitles:quickUploadBlock:editBlock:)];
-                if (canResponds){
-                    [imagePickerVc.pickerDelegate selectedVideoShowCustomActionSheet:@"温馨提示" actionTitles:@[@"快速上传(支持5分钟以内)", @"编辑后上传"] quickUploadBlock:quickUploadBlock editBlock:editBlock];
-                } else {
-                    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"" message:@"温馨提示" preferredStyle:UIAlertControllerStyleActionSheet];
-                    UIAlertAction *uploadAction = [UIAlertAction actionWithTitle:@"快速上传(支持5分钟以内)" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-                        quickUploadBlock();
-                    }];
-                    UIAlertAction *editAction = [UIAlertAction actionWithTitle:@"编辑后上传" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-                        editBlock();
-                    }];
-                    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-                        NSLog(@"cancel");
-                    }];
-                    [alertController addAction:uploadAction];
-                    [alertController addAction:editAction];
-                    [alertController addAction:cancelAction];
-                    [self presentViewController:alertController animated:YES completion:nil];
-                }
-            } else {
+                }];
+            };
+            VoidBlock editBlock = ^{
+                NSLog(@"editAction");
                 TZImagePickerController *imagePickerVc = (TZImagePickerController *)self.navigationController;
                 ZLEditVideoController *editVC = [[ZLEditVideoController alloc]init];
                 if (imagePickerVc.videoEditVCbackImage) {
@@ -812,6 +767,26 @@ static CGFloat itemMargin = 5;
                     [self finishEditVideoByImagePickerVC:weakImagePickerVc coverImage:coverImage videoURL:videoPath];
                 };
                 [self.navigationController pushViewController:editVC animated:YES];
+            };
+            TZImagePickerController *imagePickerVc = (TZImagePickerController *)self.navigationController;
+            BOOL canResponds = [imagePickerVc.pickerDelegate respondsToSelector:@selector(selectedVideoShowCustomActionSheet:actionTitles:quickUploadBlock:editBlock:)];
+            if (canResponds){
+                [imagePickerVc.pickerDelegate selectedVideoShowCustomActionSheet:@"温馨提示" actionTitles:@[@"快速上传", @"编辑后上传"] quickUploadBlock:quickUploadBlock editBlock:editBlock];
+            } else {
+                UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"" message:@"温馨提示" preferredStyle:UIAlertControllerStyleActionSheet];
+                UIAlertAction *uploadAction = [UIAlertAction actionWithTitle:@"快速上传" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    quickUploadBlock();
+                }];
+                UIAlertAction *editAction = [UIAlertAction actionWithTitle:@"编辑后上传" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    editBlock();
+                }];
+                UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+                    NSLog(@"cancel");
+                }];
+                [alertController addAction:uploadAction];
+                [alertController addAction:editAction];
+                [alertController addAction:cancelAction];
+                [self presentViewController:alertController animated:YES completion:nil];
             }
             return;
         }
