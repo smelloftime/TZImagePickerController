@@ -298,6 +298,8 @@
 /// 直接进入视频编辑 默认NO 弹窗提示是否快速上传或者编辑后上传
 @property (nonatomic) BOOL directEditVideo;
 @property (nonatomic) BOOL backWhenFinishTakePhoto;
+/// 可"快速上传"的视频最大时长（默认5*60s）
+@property (nonatomic) int couldQuickUploadVideoMaxSeconds;
 
 // MARK: end
 

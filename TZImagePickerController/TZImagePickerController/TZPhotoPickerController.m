@@ -653,11 +653,8 @@ static CGFloat itemMargin = 5;
             TZImagePickerController *imagePickerVc = (TZImagePickerController *)self.navigationController;
             [imagePickerVc showAlertWithTitle:[NSBundle tz_localizedStringForKey:@"Can not choose both video and photo"]];
         } else {
-            // 先判断试是否是低于5min的视频, 同时没有开启直接编辑属性
-            // 小于等于5min弹窗提示支持快速上传，以及编辑后上传
-            // 大于5min，直接进入编辑页面
-            NSArray *timeArr = [model.timeLength componentsSeparatedByString:@":"];
-            if (timeArr.count == 2 && (([timeArr[1] integerValue] == 0 && [timeArr[0] integerValue] <= 5) || ([timeArr[1] integerValue] > 0 && [timeArr[0] integerValue] <= 4)) && tzImagePickerVc.directEditVideo == false) {
+            // 先判断试是否是低于couldQuickUploadVideoMaxSeconds的视频, 同时没有开启直接编辑属性
+            if (model.asset.duration <= tzImagePickerVc.couldQuickUploadVideoMaxSeconds && tzImagePickerVc.directEditVideo == false) {
                 /// 显示进度的比例
                 __block float showProgressScale = 0;
                 /// AVComposition资源导出
@@ -724,14 +721,19 @@ static CGFloat itemMargin = 5;
                     [self.navigationController pushViewController:editVC animated:YES];
                 };
 
-
+                NSString *quickUpdateTimeNotice;
+                if (tzImagePickerVc.couldQuickUploadVideoMaxSeconds % 60 == 0) {
+                    quickUpdateTimeNotice = [NSString stringWithFormat:@"%d分钟", tzImagePickerVc.couldQuickUploadVideoMaxSeconds / 60];
+                } else {
+                    quickUpdateTimeNotice = [NSString stringWithFormat:@"%d秒", tzImagePickerVc.couldQuickUploadVideoMaxSeconds];
+                }
                 TZImagePickerController *imagePickerVc = (TZImagePickerController *)self.navigationController;
                 BOOL canResponds = [imagePickerVc.pickerDelegate respondsToSelector:@selector(selectedVideoShowCustomActionSheet:actionTitles:quickUploadBlock:editBlock:)];
                 if (canResponds){
-                    [imagePickerVc.pickerDelegate selectedVideoShowCustomActionSheet:@"温馨提示" actionTitles:@[@"快速上传(支持5分钟以内)", @"编辑后上传"] quickUploadBlock:quickUploadBlock editBlock:editBlock];
+                    [imagePickerVc.pickerDelegate selectedVideoShowCustomActionSheet:@"温馨提示" actionTitles:@[[NSString stringWithFormat:@"快速上传(支持%@以内)", quickUpdateTimeNotice], @"编辑后上传"] quickUploadBlock:quickUploadBlock editBlock:editBlock];
                 } else {
                     UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"" message:@"温馨提示" preferredStyle:UIAlertControllerStyleActionSheet];
-                    UIAlertAction *uploadAction = [UIAlertAction actionWithTitle:@"快速上传(支持5分钟以内)" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    UIAlertAction *uploadAction = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"快速上传(支持%@以内)", quickUpdateTimeNotice] style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
                         quickUploadBlock();
                     }];
                     UIAlertAction *editAction = [UIAlertAction actionWithTitle:@"编辑后上传" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
