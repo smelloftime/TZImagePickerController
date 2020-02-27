@@ -13,6 +13,11 @@
 @interface TZImageManager ()
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+/// 一个Manager只能同时一个导出
+@property(nonatomic, strong) AVAssetExportSession* currentExportSession;
+@property(nonatomic, strong) NSTimer* exportSessionTimer;
+@property(nonatomic, copy) void (^compressProgressHandeler)(float);
+
 @end
 
 @implementation TZImageManager
@@ -638,6 +643,70 @@ static dispatch_once_t onceToken;
     }];
 }
 
+- (void)convertAvcompositionToAvasset:(AVComposition *)composition compressProgressHandeler:(void (^)(float progress))progressHandeler completion:(void (^)(AVAsset *asset, NSURL *exportURL))completion {
+    // 导出视频
+    AVAssetExportSession *exporter = [AVAssetExportSession exportSessionWithAsset:composition presetName:AVAssetExportPresetHighestQuality];
+    if (exporter == nil) {
+        completion(nil, nil);
+        return;
+    }
+    self.currentExportSession = exporter;
+    self.compressProgressHandeler = progressHandeler;
+    // 生成一个文件路径
+    NSInteger randNumber = arc4random();
+    NSString *exportPath = [NSTemporaryDirectory() stringByAppendingString:[NSString stringWithFormat:@"comp-%ld-video.mov", randNumber]];
+    NSURL *exportURL = [NSURL fileURLWithPath:exportPath];
+    // 导出
+    if (exporter) {
+        exporter.outputURL = exportURL;  // 设置路径
+        exporter.outputFileType = AVFileTypeQuickTimeMovie;
+        exporter.shouldOptimizeForNetworkUse = YES;
+        [self startExpTimer];
+        [exporter exportAsynchronouslyWithCompletionHandler:^{
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (AVAssetExportSessionStatusCompleted == exporter.status) {   // 导出完成
+                    NSURL *URL = exporter.outputURL;
+                    AVAsset *avAsset = [AVAsset assetWithURL:URL];
+                    if (completion) {
+                        [self stopExpTimer];
+                        completion(avAsset, exportURL);
+                    }
+                } else {
+                    if (completion) {
+                        [self stopExpTimer];
+                        completion(nil, nil);
+                    }
+                }
+            });
+        }];
+    } else {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (completion) {
+                [self stopExpTimer];
+                completion(nil, nil);
+            }
+        });
+    }
+}
+
+- (void)startExpTimer {
+    dispatch_sync(dispatch_get_main_queue(), ^{
+        self.exportSessionTimer = [NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(updateExportProgress) userInfo:nil repeats:YES];
+        [self.exportSessionTimer fire];
+        [[NSRunLoop mainRunLoop] addTimer:self.exportSessionTimer forMode:NSRunLoopCommonModes];
+    });
+}
+
+- (void)stopExpTimer {
+    [self.exportSessionTimer invalidate];
+    self.exportSessionTimer = nil;
+}
+- (void)updateExportProgress {
+    if (self.currentExportSession != nil && self.compressProgressHandeler != nil) {
+        self.compressProgressHandeler(self.currentExportSession.progress);
+    }
+}
+
 - (void)startExportVideoWithVideoAsset:(AVURLAsset *)videoAsset presetName:(NSString *)presetName success:(void (^)(NSString *outputPath))success failure:(void (^)(NSString *errorMessage, NSError *error))failure {
     // Find compatible presets by video asset.
     NSArray *presets = [AVAssetExportSession exportPresetsCompatibleWithAsset:videoAsset];
@@ -690,7 +759,7 @@ static dispatch_once_t onceToken;
             dispatch_async(dispatch_get_main_queue(), ^{
                 switch (session.status) {
                     case AVAssetExportSessionStatusUnknown: {
-                        NSLog(@"AVAssetExportSessionStatusUnknown");
+                        NSLog(@"              StatusUnknown");
                     }  break;
                     case AVAssetExportSessionStatusWaiting: {
                         NSLog(@"AVAssetExportSessionStatusWaiting");
