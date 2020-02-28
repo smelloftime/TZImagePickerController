@@ -129,23 +129,25 @@
     if ([assetWriter canAddInput:videoInput]) {
         [assetWriter addInput:videoInput];
     }
+    /// 是否有音频轨道
+    bool haveAudioTrack = YES;
     AVAssetTrack *audioTrack = [asset tracksWithMediaType:AVMediaTypeAudio].firstObject;
+    AVAssetReaderTrackOutput *audioOutput;
+    AVAssetWriterInput *audioInput;
     if (!audioTrack) {
-        handler([NSError errorWithDomain:@"TZImagePickerController.CompressHelper"
-                                    code:0
-                                userInfo:@{
-                                           NSLocalizedDescriptionKey: NSLocalizedString(@"Obtain AudioTrack Failed.", nil)
-                                           }]);
-        return;
+        haveAudioTrack = NO;
     }
-    AVAssetReaderTrackOutput *audioOutput = [AVAssetReaderTrackOutput assetReaderTrackOutputWithTrack:audioTrack outputSettings:[self audioReaderOutputSettings]];
-    AVAssetWriterInput *audioInput = [AVAssetWriterInput assetWriterInputWithMediaType:AVMediaTypeAudio outputSettings:[self audioWriterOutputSettingsByCompressSetting:setting audioTrack:audioTrack]];
-    if ([assetReader canAddOutput:audioOutput]) {
-        [assetReader addOutput:audioOutput];
+    if (haveAudioTrack) {
+        audioOutput = [AVAssetReaderTrackOutput assetReaderTrackOutputWithTrack:audioTrack outputSettings:[self audioReaderOutputSettings]];
+        audioInput = [AVAssetWriterInput assetWriterInputWithMediaType:AVMediaTypeAudio outputSettings:[self audioWriterOutputSettingsByCompressSetting:setting audioTrack:audioTrack]];
+        if ([assetReader canAddOutput:audioOutput]) {
+            [assetReader addOutput:audioOutput];
+        }
+        if ([assetWriter canAddInput:audioInput]) {
+            [assetWriter addInput:audioInput];
+        }
     }
-    if ([assetWriter canAddInput:audioInput]) {
-        [assetWriter addInput:audioInput];
-    }
+
     [assetReader startReading];
     [assetWriter startWriting];
     [assetWriter startSessionAtSourceTime:kCMTimeZero];
@@ -174,25 +176,27 @@
             }
         }
     }];
-    dispatch_group_enter(group);
-    [audioInput requestMediaDataWhenReadyOnQueue:inputSerialQueue usingBlock:^{
-        while (audioInput.isReadyForMoreMediaData) {
-            CMSampleBufferRef sampleBuffer;
-            if (assetReader.status == AVAssetReaderStatusReading && (sampleBuffer = [audioOutput copyNextSampleBuffer])) {
-                BOOL result = [audioInput appendSampleBuffer:sampleBuffer];
-                CFRelease(sampleBuffer);
-                if (!result) {
-                    [assetReader cancelReading];
+    if (haveAudioTrack) {
+        dispatch_group_enter(group);
+        [audioInput requestMediaDataWhenReadyOnQueue:inputSerialQueue usingBlock:^{
+            while (audioInput.isReadyForMoreMediaData) {
+                CMSampleBufferRef sampleBuffer;
+                if (assetReader.status == AVAssetReaderStatusReading && (sampleBuffer = [audioOutput copyNextSampleBuffer])) {
+                    BOOL result = [audioInput appendSampleBuffer:sampleBuffer];
+                    CFRelease(sampleBuffer);
+                    if (!result) {
+                        [assetReader cancelReading];
+                        dispatch_group_leave(group);
+                        break;
+                    }
+                } else {
+                    [audioInput markAsFinished];
                     dispatch_group_leave(group);
                     break;
                 }
-            } else {
-                [audioInput markAsFinished];
-                dispatch_group_leave(group);
-                break;
             }
-        }
-    }];
+        }];
+    }
 
     dispatch_group_notify(group, dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0), ^{
         if (assetReader.status == AVAssetReaderStatusReading) {
