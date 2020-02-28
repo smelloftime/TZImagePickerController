@@ -256,6 +256,20 @@
 @property (nonatomic, copy) NSString *settingBtnTitleStr;
 @property (nonatomic, copy) NSString *processHintStr;
 // MARK: - TS 定制属性
+/// 视频导出弹窗定制
+typedef NS_ENUM(NSInteger, TSExportVideoMode) {
+    /// 快速导出（限制时长）+编辑后导出 (超出couldQuickExportVideoMaxSeconds时长点击"快速导出无效")
+    TSExportVideoModeQuickLimitTimeAndEditExport = 0,
+    /// 快速导出（不限时长）+编辑后导出
+    TSExportVideoModeQuickNoLimitTimeAndEditExport,
+    /// 快速导出：不限制时长
+    TSExportVideoModeQuickNoLimitTimeExport,
+    /// 快速导出：限制时长(超出couldQuickExportVideoMaxSeconds时长弹窗提示)
+    TSExportVideoModeQuickLimitTimeExport,
+    /// 编辑后导出
+    TSExportVideoModeEditExport,
+};
+
 ///是正方形还是长方形
 @property (assign, nonatomic) BOOL isSquare;
 /// 裁剪size,圆形裁剪则短边裁剪半径
@@ -295,9 +309,11 @@
 @property (nonatomic) NSUInteger maxEditVideoTime;
 /// 最小可选视频时长(秒) 默认3秒
 @property (nonatomic) NSUInteger minEditVideoTime;
-/// 直接进入视频编辑 默认NO 弹窗提示是否快速上传或者编辑后上传
-@property (nonatomic) BOOL directEditVideo;
 @property (nonatomic) BOOL backWhenFinishTakePhoto;
+/// 可"快速上传"的视频最大时长（默认5*60s）设置为0即不限制时长
+@property (nonatomic) int couldQuickExportVideoMaxSeconds;
+/// 选择视频弹窗（默认快速导出+编辑后导出）
+@property (nonatomic) TSExportVideoMode exportVideoMode;
 
 // MARK: end
 
@@ -362,7 +378,11 @@
 - (void)imagePickerControllerDidClickTakePhotoBtn:(TZImagePickerController *)picker;
 
 typedef void (^VoidBlock)(void);
+/// 自定义视频选择弹窗样式
 - (void)selectedVideoShowCustomActionSheet:(NSString *)message actionTitles:(NSArray<NSString *> *)actionTitles quickUploadBlock:(VoidBlock)quickUploadBlock editBlock:(VoidBlock)editBlock;
+/// 自定义视频选择警告弹窗样式
+- (void)selectedVideoShowCustomAlertTitle:(NSString *)title message:(NSString *)message;
+
 @end
 
 

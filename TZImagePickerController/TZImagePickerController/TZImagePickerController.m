@@ -208,7 +208,7 @@
         self.columnNumber = columnNumber;
         [self configDefaultSetting];
         self.selectedAssets = [NSMutableArray array];
-        
+        self.couldQuickExportVideoMaxSeconds = 5 * 60;
         if (![[TZImageManager manager] authorizationStatusAuthorized]) {
             _tipLabel = [[UILabel alloc] init];
             _tipLabel.frame = CGRectMake(8, 120, self.view.tz_width - 16, 60);
@@ -265,6 +265,7 @@
         self.sortAscendingByModificationDate = YES;
         self.autoDismiss = YES;
         self.columnNumber = columnNumber;
+        self.couldQuickExportVideoMaxSeconds = 5 * 60;
         [self configDefaultSetting];
         
         if (![[TZImageManager manager] authorizationStatusAuthorized]) {
@@ -440,6 +441,7 @@
         self.sortAscendingByModificationDate = YES;
         self.autoDismiss = YES;
         self.columnNumber = columnNumber;
+        self.couldQuickExportVideoMaxSeconds = 5 * 60;
         [self configDefaultSetting];
         
         if (![[TZImageManager manager] authorizationStatusAuthorized]) {
@@ -480,6 +482,7 @@
     if (self) {
         self.selectedAssets = [NSMutableArray arrayWithArray:selectedAssets];
         self.allowPickingOriginalPhoto = self.allowPickingOriginalPhoto;
+        self.couldQuickExportVideoMaxSeconds = 5 * 60;
         [self configDefaultSetting];
         self.shouldSetCoverImage = YES;
 
@@ -508,6 +511,7 @@
         self.allowCrop = YES;
         self.selectedAssets = [NSMutableArray arrayWithArray:@[asset]];
         [self configDefaultSetting];
+        self.couldQuickExportVideoMaxSeconds = 5 * 60;
         self.shouldSetCoverImage = YES;
 
         previewVc.photos = [NSMutableArray arrayWithArray:@[photo]];
