@@ -80,8 +80,12 @@
     if (self.assetCellDidSetModelBlock) {
         self.assetCellDidSetModelBlock(self, _imageView, _selectImageView, _indexLabel, _bottomView, _timeLength, _videoImgView);
     }
+    self.videoSelectedIcon.hidden = !model.shouldShowVideoSelectedIcon;
 }
 
+- (void)showVideoSelectedIcon:(BOOL)show {
+    self.videoSelectedIcon.hidden = !show;
+}
 - (void)setIndex:(NSInteger)index {
     _index = index;
     self.indexLabel.text = [NSString stringWithFormat:@"%zd", index];
@@ -223,7 +227,15 @@
     }
     return _selectPhotoButton;
 }
-
+- (UIImageView*)videoSelectedIcon {
+    if (_videoSelectedIcon == nil) {
+        UIImageView *aImageView = [[UIImageView alloc]init];
+        aImageView.image = [UIImage tz_imageNamedFromMyBundle: @"photo_sel_photoPickerVc"];
+        [self.contentView addSubview:aImageView];
+        _videoSelectedIcon = aImageView;
+    }
+    return _videoSelectedIcon;
+}
 - (UIImageView *)imageView {
     if (_imageView == nil) {
         UIImageView *imageView = [[UIImageView alloc] init];
@@ -332,6 +344,8 @@
     } else {
         _selectPhotoButton.frame = self.bounds;
     }
+    _videoSelectedIcon.frame = CGRectMake(self.tz_width - 15 - 5, 5, 15, 15);
+
     _selectImageView.frame = CGRectMake(self.tz_width - 20 - 5, 5, 20, 20);
     _indexLabel.frame = _selectImageView.frame;
     _imageView.frame = CGRectMake(0, 0, self.tz_width, self.tz_height);
@@ -397,6 +411,7 @@
     if (self.albumCellDidSetModelBlock) {
         self.albumCellDidSetModelBlock(self, _posterImageView, _titleLabel);
     }
+
 }
 
 - (void)layoutSubviews {
