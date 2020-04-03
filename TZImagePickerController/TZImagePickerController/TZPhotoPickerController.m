@@ -817,21 +817,33 @@ static CGFloat itemMargin = 5;
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
     TZImagePickerController *tzImagePickerVc = (TZImagePickerController *)self.navigationController;
     if (tzImagePickerVc.allowPickingVideo) {
-        /// ST Todo 处理选中
         if (self.selectedVideoModel != nil) {
             self.selectedVideoModel.shouldShowVideoSelectedIcon = NO;
             [collectionView reloadItemsAtIndexPaths:@[self.selectedVideoModelIndex]];
         }
         TZAssetModel *aModel;
         if (tzImagePickerVc.sortAscendingByModificationDate) {
-            aModel = _models[indexPath.row - 1];
+            aModel = _models[indexPath.item];
+            self.selectedVideoModelIndex = indexPath;
         } else {
-            aModel = _models[indexPath.row - 1];
+            /// 选中了拍视频
+            if (indexPath.item == 0) {
+                // 否则使用系统的拍照
+                if (tzImagePickerVc.allowPickingVideo == YES && [tzImagePickerVc.pickerDelegate respondsToSelector:@selector(imagePickerControllerDidClickTakePhotoBtn:)]) {
+                    [self.navigationController dismissViewControllerAnimated:NO completion:^{
+                        [tzImagePickerVc.pickerDelegate imagePickerControllerDidClickTakePhotoBtn:tzImagePickerVc];
+                    }];
+                } else {
+                    [self takePhoto];
+                }
+                return;
+            } else {
+                aModel = _models[indexPath.item - 1];
+                self.selectedVideoModelIndex = indexPath;
+            }
         }
         aModel.shouldShowVideoSelectedIcon = YES;
         self.selectedVideoModel = aModel;
-        self.selectedVideoModelIndex = indexPath;
-        aModel.shouldShowVideoSelectedIcon = true;
         [collectionView reloadItemsAtIndexPaths:@[self.selectedVideoModelIndex]];
         return;
     }
