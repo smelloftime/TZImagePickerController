@@ -879,35 +879,37 @@ static CGFloat itemMargin = 5;
 }
 
 - (void)AVURLAssetExportWithAsset:(AVURLAsset *)avAsset sourePHAsset:(PHAsset*)phAsset soureExpVideoPath:(NSString *)soureExpVideoPath showProgressScale:(float)showProgressScale {
-    TZImagePickerController *tzImagePickerVc = (TZImagePickerController *)self.navigationController;
-    [[[TZImageManager alloc] init] compressionVideoWithVideoAsset:avAsset quality:VideoQualityTypeHigh success:^(NSString *outputPath) {
-        NSString *exportFilePath = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.%@",@"exportVideo",@"mp4"]];
-        // 移除上一个
-        if ([[NSFileManager defaultManager] fileExistsAtPath:exportFilePath]) {
-            NSError *removeErr;
-            [[NSFileManager defaultManager] removeItemAtPath:exportFilePath error: &removeErr];
-        }
-        /// 如果有源视频先删除源视频
-        if ([[NSFileManager defaultManager] fileExistsAtPath:soureExpVideoPath]) {
-            NSError *removeErr;
-            [[NSFileManager defaultManager] removeItemAtPath:soureExpVideoPath error: &removeErr];
-        }
-        // 把文件移动到同一的路径下，修改为同一的名称。方便后续的操作
-        NSError *moveErr;
-        [[NSFileManager defaultManager] moveItemAtURL:[NSURL fileURLWithPath:outputPath] toURL:[NSURL fileURLWithPath:exportFilePath] error:&moveErr];
-        /// 导出封面
-        [self getJpegCoverFormAsset:phAsset videoExportFilePath:exportFilePath];
-    } compressProgressHandeler:^(float progress) {
-        NSString *info = [NSString stringWithFormat:@"当前进度:%ld%%", lround(progress * (1 - showProgressScale) * 100 + lround(showProgressScale * 100))];
-        [tzImagePickerVc updateProgressInfo: info];
-    } failure:^(NSString *errorMessage, NSError *error) {
-        // 允许用户操作
-        dispatch_async(dispatch_get_main_queue(), ^{
-            tzImagePickerVc.view.userInteractionEnabled = YES;
-            [tzImagePickerVc hideProgressHUD];
-            [tzImagePickerVc showAlertWithTitle:@"自动导出出问题啦，请手动编辑"];
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            TZImagePickerController *tzImagePickerVc = (TZImagePickerController *)self.navigationController;
+            [TZImageManager compressionVideoWithVideoAsset:avAsset quality:VideoQualityTypeHigh success:^(NSString *outputPath) {
+                NSString *exportFilePath = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.%@",@"exportVideo",@"mp4"]];
+                // 移除上一个
+                if ([[NSFileManager defaultManager] fileExistsAtPath:exportFilePath]) {
+                    NSError *removeErr;
+                    [[NSFileManager defaultManager] removeItemAtPath:exportFilePath error: &removeErr];
+                }
+                /// 如果有源视频先删除源视频
+                if ([[NSFileManager defaultManager] fileExistsAtPath:soureExpVideoPath]) {
+                    NSError *removeErr;
+                    [[NSFileManager defaultManager] removeItemAtPath:soureExpVideoPath error: &removeErr];
+                }
+                // 把文件移动到同一的路径下，修改为同一的名称。方便后续的操作
+                NSError *moveErr;
+                [[NSFileManager defaultManager] moveItemAtURL:[NSURL fileURLWithPath:outputPath] toURL:[NSURL fileURLWithPath:exportFilePath] error:&moveErr];
+                /// 导出封面
+                [self getJpegCoverFormAsset:phAsset videoExportFilePath:exportFilePath];
+            } compressProgressHandeler:^(float progress) {
+                NSString *info = [NSString stringWithFormat:@"当前进度:%ld%%", lround(progress * (1 - showProgressScale) * 100 + lround(showProgressScale * 100))];
+                [tzImagePickerVc updateProgressInfo: info];
+            } failure:^(NSString *errorMessage, NSError *error) {
+                // 允许用户操作
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    tzImagePickerVc.view.userInteractionEnabled = YES;
+                    [tzImagePickerVc hideProgressHUD];
+                    [tzImagePickerVc showAlertWithTitle:@"自动导出出问题啦，请手动编辑"];
+                });
+            }];
         });
-    }];
 }
 
 /// 获取封面

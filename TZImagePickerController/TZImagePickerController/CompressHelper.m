@@ -37,6 +37,20 @@
        return self;
 }
 
+- (int)calculateAverageBitRateByVideoTrack:(AVAssetTrack*)videoTrack videoSize:(CGSize)videoSize  {
+    CGFloat maxFrameRate = (CGFloat)((int)videoTrack.minFrameDuration.timescale / videoTrack.minFrameDuration.value);
+    CGSize naturalSize = videoTrack.naturalSize;
+    //假设帧率减小清晰度不变的情况下(增加码率)，根据原视频质量减小码率
+    CGFloat factor = fmin((videoSize.width * videoSize.height) / (naturalSize.width * naturalSize.height) * maxFrameRate / (_videoFrameRate > 0 ? _videoFrameRate : maxFrameRate), 1.0);
+    CGFloat ouputVideoBitRate = factor * (CGFloat)videoTrack.estimatedDataRate * [self getExtraCompressionFactorByVideoTrack:videoTrack videoSize:videoSize];
+    return (int)ouputVideoBitRate;
+}
+
+- (CGFloat)getExtraCompressionFactorByVideoTrack:(AVAssetTrack *)videoTrack videoSize:(CGSize)videoSize  {
+    CGFloat factor = 3.0 / ((CGFloat)videoTrack.estimatedDataRate / (videoSize.width * videoSize.height));//参看往上中画质码率:像素=3:1
+    return fmin(factor, 1.0);
+}
+
 - (CGSize)getVideoSizeByVideoTrack:(AVAssetTrack *)videoTrack  {
     CGSize naturalSize = videoTrack.naturalSize;
     CGSize refSize;
@@ -129,23 +143,25 @@
     if ([assetWriter canAddInput:videoInput]) {
         [assetWriter addInput:videoInput];
     }
+    /// 是否有音频轨道
+    bool haveAudioTrack = YES;
     AVAssetTrack *audioTrack = [asset tracksWithMediaType:AVMediaTypeAudio].firstObject;
+    AVAssetReaderTrackOutput *audioOutput;
+    AVAssetWriterInput *audioInput;
     if (!audioTrack) {
-        handler([NSError errorWithDomain:@"TZImagePickerController.CompressHelper"
-                                    code:0
-                                userInfo:@{
-                                           NSLocalizedDescriptionKey: NSLocalizedString(@"Obtain AudioTrack Failed.", nil)
-                                           }]);
-        return;
+        haveAudioTrack = NO;
     }
-    AVAssetReaderTrackOutput *audioOutput = [AVAssetReaderTrackOutput assetReaderTrackOutputWithTrack:audioTrack outputSettings:[self audioReaderOutputSettings]];
-    AVAssetWriterInput *audioInput = [AVAssetWriterInput assetWriterInputWithMediaType:AVMediaTypeAudio outputSettings:[self audioWriterOutputSettingsByCompressSetting:setting audioTrack:audioTrack]];
-    if ([assetReader canAddOutput:audioOutput]) {
-        [assetReader addOutput:audioOutput];
+    if (haveAudioTrack) {
+        audioOutput = [AVAssetReaderTrackOutput assetReaderTrackOutputWithTrack:audioTrack outputSettings:[self audioReaderOutputSettings]];
+        audioInput = [AVAssetWriterInput assetWriterInputWithMediaType:AVMediaTypeAudio outputSettings:[self audioWriterOutputSettingsByCompressSetting:setting audioTrack:audioTrack]];
+        if ([assetReader canAddOutput:audioOutput]) {
+            [assetReader addOutput:audioOutput];
+        }
+        if ([assetWriter canAddInput:audioInput]) {
+            [assetWriter addInput:audioInput];
+        }
     }
-    if ([assetWriter canAddInput:audioInput]) {
-        [assetWriter addInput:audioInput];
-    }
+
     [assetReader startReading];
     [assetWriter startWriting];
     [assetWriter startSessionAtSourceTime:kCMTimeZero];
@@ -174,25 +190,27 @@
             }
         }
     }];
-    dispatch_group_enter(group);
-    [audioInput requestMediaDataWhenReadyOnQueue:inputSerialQueue usingBlock:^{
-        while (audioInput.isReadyForMoreMediaData) {
-            CMSampleBufferRef sampleBuffer;
-            if (assetReader.status == AVAssetReaderStatusReading && (sampleBuffer = [audioOutput copyNextSampleBuffer])) {
-                BOOL result = [audioInput appendSampleBuffer:sampleBuffer];
-                CFRelease(sampleBuffer);
-                if (!result) {
-                    [assetReader cancelReading];
+    if (haveAudioTrack) {
+        dispatch_group_enter(group);
+        [audioInput requestMediaDataWhenReadyOnQueue:inputSerialQueue usingBlock:^{
+            while (audioInput.isReadyForMoreMediaData) {
+                CMSampleBufferRef sampleBuffer;
+                if (assetReader.status == AVAssetReaderStatusReading && (sampleBuffer = [audioOutput copyNextSampleBuffer])) {
+                    BOOL result = [audioInput appendSampleBuffer:sampleBuffer];
+                    CFRelease(sampleBuffer);
+                    if (!result) {
+                        [assetReader cancelReading];
+                        dispatch_group_leave(group);
+                        break;
+                    }
+                } else {
+                    [audioInput markAsFinished];
                     dispatch_group_leave(group);
                     break;
                 }
-            } else {
-                [audioInput markAsFinished];
-                dispatch_group_leave(group);
-                break;
             }
-        }
-    }];
+        }];
+    }
 
     dispatch_group_notify(group, dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0), ^{
         if (assetReader.status == AVAssetReaderStatusReading) {
@@ -230,8 +248,9 @@
 
 + (NSDictionary *)videoWriterOutputSettingsByCompressSetting:(CompressSetting *)setting videoTrack:(AVAssetTrack *)videoTrack {
     CGSize videoSize = [setting getVideoSizeByVideoTrack:videoTrack];
+    int bitRate = [setting calculateAverageBitRateByVideoTrack:videoTrack videoSize:videoSize];
     NSDictionary *compressionPropertier = @{
-                                            AVVideoAverageBitRateKey: @(setting.videoBitRate),
+                                            AVVideoAverageBitRateKey: @(bitRate),
                                             AVVideoProfileLevelKey: (NSString *)kVTProfileLevel_H264_High_3_1,
                                             AVVideoAllowFrameReorderingKey: @(YES)
                                             };

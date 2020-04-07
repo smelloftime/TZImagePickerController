@@ -101,7 +101,7 @@
 /// 压缩导出后的视频
 - (void)compressionVideoWithVideoURL:(NSURL *)videoURL quality:(VideoQualityType)quality success:(void (^)(NSString *outputPath))success compressProgressHandeler:(void (^)(float progress))progressHandeler failure:(void (^)(NSString *errorMessage, NSError *error))failure;
 /// 通过asst直接压缩视频
-- (void)compressionVideoWithVideoAsset:(AVAsset *)videoAsset quality:(VideoQualityType)quality success:(void (^)(NSString *outputPath))success compressProgressHandeler:(void (^)(float progress))progressHandeler failure:(void (^)(NSString *errorMessage, NSError *error))failure;
++ (void)compressionVideoWithVideoAsset:(AVAsset *)videoAsset quality:(VideoQualityType)quality success:(void (^)(NSString *outputPath))success compressProgressHandeler:(void (^)(float progress))progressHandeler failure:(void (^)(NSString *errorMessage, NSError *error))failure;
 /// 通过AVComposition导出视频
 - (void)convertAvcompositionToAvasset:(AVComposition *)composition compressProgressHandeler:(void (^)(float progress))progressHandeler completion:(void (^)(AVAsset *asset, NSURL *exportURL))completion;
 
