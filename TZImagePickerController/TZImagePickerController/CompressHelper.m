@@ -37,6 +37,20 @@
        return self;
 }
 
+- (int)calculateAverageBitRateByVideoTrack:(AVAssetTrack*)videoTrack videoSize:(CGSize)videoSize  {
+    CGFloat maxFrameRate = (CGFloat)((int)videoTrack.minFrameDuration.timescale / videoTrack.minFrameDuration.value);
+    CGSize naturalSize = videoTrack.naturalSize;
+    //假设帧率减小清晰度不变的情况下(增加码率)，根据原视频质量减小码率
+    CGFloat factor = fmin((videoSize.width * videoSize.height) / (naturalSize.width * naturalSize.height) * maxFrameRate / (_videoFrameRate > 0 ? _videoFrameRate : maxFrameRate), 1.0);
+    CGFloat ouputVideoBitRate = factor * (CGFloat)videoTrack.estimatedDataRate * [self getExtraCompressionFactorByVideoTrack:videoTrack videoSize:videoSize];
+    return (int)ouputVideoBitRate;
+}
+
+- (CGFloat)getExtraCompressionFactorByVideoTrack:(AVAssetTrack *)videoTrack videoSize:(CGSize)videoSize  {
+    CGFloat factor = 3.0 / ((CGFloat)videoTrack.estimatedDataRate / (videoSize.width * videoSize.height));//参看往上中画质码率:像素=3:1
+    return fmin(factor, 1.0);
+}
+
 - (CGSize)getVideoSizeByVideoTrack:(AVAssetTrack *)videoTrack  {
     CGSize naturalSize = videoTrack.naturalSize;
     CGSize refSize;
@@ -234,8 +248,9 @@
 
 + (NSDictionary *)videoWriterOutputSettingsByCompressSetting:(CompressSetting *)setting videoTrack:(AVAssetTrack *)videoTrack {
     CGSize videoSize = [setting getVideoSizeByVideoTrack:videoTrack];
+    int bitRate = [setting calculateAverageBitRateByVideoTrack:videoTrack videoSize:videoSize];
     NSDictionary *compressionPropertier = @{
-                                            AVVideoAverageBitRateKey: @(setting.videoBitRate),
+                                            AVVideoAverageBitRateKey: @(bitRate),
                                             AVVideoProfileLevelKey: (NSString *)kVTProfileLevel_H264_High_3_1,
                                             AVVideoAllowFrameReorderingKey: @(YES)
                                             };
