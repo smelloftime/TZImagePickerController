@@ -101,7 +101,7 @@
     TZImagePickerController *tzImagePickerVc = (TZImagePickerController *)self.navigationController;
     
     _naviBar = [[UIView alloc] initWithFrame:CGRectZero];
-    _naviBar.backgroundColor = [UIColor whiteColor];
+    _naviBar.backgroundColor = [TZCutomColor whiteColor];
     
     _backButton = [[UIButton alloc] initWithFrame:CGRectZero];
     if (tzImagePickerVc.backImage) {
@@ -109,19 +109,19 @@
     } else {
         [_backButton setImage:[UIImage tz_imageNamedFromMyBundle:@"topbar_back"] forState:UIControlStateNormal];
     }
-    [_backButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [_backButton setTitleColor:[TZCutomColor whiteColor] forState:UIControlStateNormal];
     [_backButton addTarget:self action:@selector(backButtonClick) forControlEvents:UIControlEventTouchUpInside];
     [_naviBar addSubview:_backButton];
     self.navBarSpLine = [[UIView alloc]initWithFrame:CGRectMake(0, _naviBar.frame.size.height - 0.5, _naviBar.frame.size.width, 0.5)];
     CGFloat rgb2 = 235 / 255.0;
-    self.navBarSpLine.backgroundColor = [UIColor colorWithRed:rgb2 green:rgb2 blue:rgb2 alpha:1.0];
+    self.navBarSpLine.backgroundColor = [TZCutomColor colorWithRed:rgb2 green:rgb2 blue:rgb2 alpha:1.0];
     [_naviBar addSubview: self.navBarSpLine];
     [self.view addSubview:_naviBar];
 }
 
 - (void)configBottomToolBar {
     _toolBar = [[UIView alloc] initWithFrame:CGRectZero];
-    _toolBar.backgroundColor = [UIColor whiteColor];
+    _toolBar.backgroundColor = [TZCutomColor whiteColor];
     
     TZImagePickerController *_tzImagePickerVc = (TZImagePickerController *)self.navigationController;
 //    if (_tzImagePickerVc.allowPickingOriginalPhoto) {
@@ -160,7 +160,7 @@
     _selectButton.hidden = !_tzImagePickerVc.showSelectBtn;
     [_selectButton setTitle:@" 选择" forState:UIControlStateNormal];
     _selectButton.titleLabel.font = [UIFont systemFontOfSize:15];
-    [_selectButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [_selectButton setTitleColor:[TZCutomColor blackColor] forState:UIControlStateNormal];
     [_toolBar addSubview:_selectButton];
 
     _doneButton = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -199,8 +199,7 @@
     [_toolBar addSubview:_numberImageView];
     [_toolBar addSubview:_numberLabel];
     self.toolBarSpLine = [[UIView alloc]initWithFrame:CGRectZero];
-    CGFloat rgb2 = 235 / 255.0;
-    self.toolBarSpLine.backgroundColor = [UIColor colorWithRed:rgb2 green:rgb2 blue:rgb2 alpha:1.0];
+    self.toolBarSpLine.backgroundColor = [TZCutomColor toobarColor];
     [_toolBar addSubview: self.toolBarSpLine];
     [self.view addSubview:_toolBar];
 
@@ -213,7 +212,7 @@
     _layout = [[UICollectionViewFlowLayout alloc] init];
     _layout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
     _collectionView = [[UICollectionView alloc] initWithFrame:CGRectZero collectionViewLayout:_layout];
-    _collectionView.backgroundColor = [UIColor whiteColor];
+    _collectionView.backgroundColor = [TZCutomColor whiteColor];
     _collectionView.dataSource = self;
     _collectionView.delegate = self;
     _collectionView.pagingEnabled = YES;
@@ -236,15 +235,15 @@
         _cropBgView = [UIView new];
         _cropBgView.userInteractionEnabled = NO;
         _cropBgView.frame = self.view.bounds;
-        _cropBgView.backgroundColor = [UIColor clearColor];
+        _cropBgView.backgroundColor = [TZCutomColor clearColor];
         [self.view addSubview:_cropBgView];
         [TZImageCropManager overlayClippingWithView:_cropBgView cropRect:_tzImagePickerVc.cropRect containerView:self.view needCircleCrop:_tzImagePickerVc.needCircleCrop];
         
         _cropView = [UIView new];
         _cropView.userInteractionEnabled = NO;
         _cropView.frame = _tzImagePickerVc.cropRect;
-        _cropView.backgroundColor = [UIColor clearColor];
-        _cropView.layer.borderColor = [UIColor whiteColor].CGColor;
+        _cropView.backgroundColor = [TZCutomColor clearColor];
+        _cropView.layer.borderColor = [TZCutomColor whiteColor].CGColor;
         _cropView.layer.borderWidth = 1.0;
         if (_tzImagePickerVc.needCircleCrop) {
             _cropView.layer.cornerRadius = _tzImagePickerVc.cropRect.size.width / 2;
