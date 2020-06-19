@@ -50,23 +50,23 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.needShowStatusBar = ![UIApplication sharedApplication].statusBarHidden;
-    self.view.backgroundColor = [UIColor whiteColor];
-    self.navigationBar.barStyle = UIBarStyleBlack;
-    self.navigationBar.translucent = YES;
+    self.view.backgroundColor = [TZCutomColor whiteColor];
+//    self.navigationBar.barStyle = UIBarStyleBlack;
+//    self.navigationBar.translucent = YES;
     [TZImageManager manager].shouldFixOrientation = NO;
 
     // Default appearance, you can reset these after this method
     // 默认的外观，你可以在这个方法后重置
-    self.oKButtonTitleColorNormal   = [UIColor whiteColor];
-    self.oKButtonTitleColorDisabled = [UIColor whiteColor];
+    self.oKButtonTitleColorNormal   = [TZCutomColor whiteColor];
+    self.oKButtonTitleColorDisabled = [TZCutomColor whiteColor];
     if (_mainColor) {
         self.oKButtonBackGroundColorEnabled = _mainColor;
     } else {
-        self.oKButtonBackGroundColorEnabled = [UIColor colorWithRed:89 / 255.0 green:182 / 255.0 blue:215 / 255.0 alpha:1];
+        self.oKButtonBackGroundColorEnabled = [TZCutomColor colorWithRed:89 / 255.0 green:182 / 255.0 blue:215 / 255.0 alpha:1];
     }
-    self.oKButtonBackGroundColorDisabled = [UIColor colorWithRed:222 / 255.0 green:222 / 255.0 blue:222 / 255.0 alpha:1];
-    self.navigationBar.barTintColor = [UIColor whiteColor];
-    self.navigationBar.tintColor = [UIColor blackColor];
+    self.oKButtonBackGroundColorDisabled = [TZCutomColor colorWithRed:222 / 255.0 green:222 / 255.0 blue:222 / 255.0 alpha:1];
+//    self.navigationBar.barTintColor = [TZCutomColor whiteColor];
+//    self.navigationBar.tintColor = [TZCutomColor blackColor];
     self.automaticallyAdjustsScrollViewInsets = NO;
     if (self.needShowStatusBar) {
         [UIApplication sharedApplication].statusBarHidden = NO;
@@ -1241,5 +1241,83 @@
     }
     _languageBundle = [NSBundle bundleWithPath:[[NSBundle tz_imagePickerBundle] pathForResource:preferredLanguage ofType:@"lproj"]];
 }
+
+@end
+
+// MARK: - 自定义颜色
+@implementation TZCutomColor
+
++ (UIColor*)whiteColor {
+    if (@available(iOS 13.0, *)) {
+       return [UIColor colorWithDynamicProvider:^UIColor * _Nonnull(UITraitCollection * _Nonnull traitCollection) {
+            if (traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark) {
+                return UIColor.blackColor;
+            } else {
+                return UIColor.whiteColor;
+            }
+        }];
+    } else {
+        return UIColor.whiteColor;
+    }
+}
+
++ (UIColor*)blackColor {
+    if (@available(iOS 13.0, *)) {
+       return [UIColor colorWithDynamicProvider:^UIColor * _Nonnull(UITraitCollection * _Nonnull traitCollection) {
+            if (traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark) {
+                return UIColor.whiteColor;
+            } else {
+                return UIColor.blackColor;
+            }
+        }];
+    } else {
+        return UIColor.blackColor;
+    }
+}
+
++ (UIColor*)toobarColor {
+    CGFloat rgb = 253 / 255.0;
+    UIColor* aColor = [UIColor colorWithRed:rgb green:rgb blue:rgb alpha:1.0];
+    if (@available(iOS 13.0, *)) {
+       return [UIColor colorWithDynamicProvider:^UIColor * _Nonnull(UITraitCollection * _Nonnull traitCollection) {
+            if (traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark) {
+                return [UIColor colorWithWhite:0.15 alpha:0.9];
+            } else {
+                return aColor;
+            }
+        }];
+    } else {
+        return aColor;
+    }
+}
+
++ (UIColor*)lightGrayColor {
+    if (@available(iOS 13.0, *)) {
+       return [UIColor colorWithDynamicProvider:^UIColor * _Nonnull(UITraitCollection * _Nonnull traitCollection) {
+            if (traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark) {
+                return UIColor.whiteColor;
+            } else {
+                return UIColor.lightGrayColor;
+            }
+        }];
+    } else {
+        return UIColor.lightGrayColor;
+    }
+}
+
++ (UIColor*)grayColor {
+    if (@available(iOS 13.0, *)) {
+       return [UIColor colorWithDynamicProvider:^UIColor * _Nonnull(UITraitCollection * _Nonnull traitCollection) {
+            if (traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark) {
+                return UIColor.lightGrayColor;
+            } else {
+                return UIColor.grayColor;
+            }
+        }];
+    } else {
+        return UIColor.grayColor;
+    }
+}
+
 
 @end

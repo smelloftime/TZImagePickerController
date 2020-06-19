@@ -253,7 +253,7 @@
 - (UIView *)bottomView {
     if (_bottomView == nil) {
         UIView *bottomView = [[UIView alloc] init];
-        bottomView.backgroundColor = UIColor.clearColor;
+        bottomView.backgroundColor = TZCutomColor.clearColor;
         [self.contentView addSubview:bottomView];
         _bottomView = bottomView;
     }
@@ -292,9 +292,9 @@
     if (_timeLength == nil) {
         UILabel *timeLength = [[UILabel alloc] init];
         timeLength.font = [UIFont boldSystemFontOfSize:10];
-        timeLength.textColor = [UIColor whiteColor];
+        timeLength.textColor = [TZCutomColor whiteColor];
         timeLength.textAlignment = NSTextAlignmentCenter;
-        timeLength.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.5];
+        timeLength.backgroundColor = [TZCutomColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.5];
         timeLength.clipsToBounds = YES;
         timeLength.layer.cornerRadius = 7;
         [self.bottomView addSubview:timeLength];
@@ -307,7 +307,7 @@
     if (_indexLabel == nil) {
         UILabel *indexLabel = [[UILabel alloc] init];
         indexLabel.font = [UIFont systemFontOfSize:14];
-        indexLabel.textColor = [UIColor whiteColor];
+        indexLabel.textColor = [TZCutomColor whiteColor];
         indexLabel.textAlignment = NSTextAlignmentCenter;
         [self.contentView addSubview:indexLabel];
         _indexLabel = indexLabel;
@@ -380,8 +380,8 @@
 - (void)setModel:(TZAlbumModel *)model {
     _model = model;
     
-    NSMutableAttributedString *nameString = [[NSMutableAttributedString alloc] initWithString:model.name attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16],NSForegroundColorAttributeName:[UIColor blackColor]}];
-    NSAttributedString *countString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"  (%zd)",model.count] attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16],NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
+    NSMutableAttributedString *nameString = [[NSMutableAttributedString alloc] initWithString:model.name attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16],NSForegroundColorAttributeName:[TZCutomColor blackColor]}];
+    NSAttributedString *countString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"  (%zd)",model.count] attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16],NSForegroundColorAttributeName:[TZCutomColor lightGrayColor]}];
     [nameString appendAttributedString:countString];
     self.titleLabel.attributedText = nameString;
     [[TZImageManager manager] getPostImageWithAlbumModel:model completion:^(UIImage *postImage) {
@@ -432,7 +432,7 @@
     if (_titleLabel == nil) {
         UILabel *titleLabel = [[UILabel alloc] init];
         titleLabel.font = [UIFont boldSystemFontOfSize:17];
-        titleLabel.textColor = [UIColor blackColor];
+        titleLabel.textColor = [TZCutomColor blackColor];
         titleLabel.textAlignment = NSTextAlignmentLeft;
         [self.contentView addSubview:titleLabel];
         _titleLabel = titleLabel;
@@ -445,8 +445,8 @@
         UIButton *selectedCountButton = [[UIButton alloc] init];
         selectedCountButton.layer.cornerRadius = 12;
         selectedCountButton.clipsToBounds = YES;
-        selectedCountButton.backgroundColor = [UIColor redColor];
-        [selectedCountButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        selectedCountButton.backgroundColor = [TZCutomColor redColor];
+        [selectedCountButton setTitleColor:[TZCutomColor whiteColor] forState:UIControlStateNormal];
         selectedCountButton.titleLabel.font = [UIFont systemFontOfSize:15];
         [self.contentView addSubview:selectedCountButton];
         _selectedCountButton = selectedCountButton;
@@ -463,7 +463,7 @@
 - (instancetype)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
-        self.backgroundColor = [UIColor whiteColor];
+        self.backgroundColor = [TZCutomColor whiteColor];
         _imageView = [[UIImageView alloc] init];
         _imageView.backgroundColor = [UIColor colorWithWhite:1.000 alpha:0.500];
         _imageView.contentMode = UIViewContentModeScaleAspectFill;

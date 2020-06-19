@@ -7,6 +7,7 @@
 //
 
 #import "LZImageCropping.h"
+#import "TZImagePickerController.h"
 #import "sys/utsname.h"
 @interface LZImageCropping ()<UIScrollViewDelegate>
 {
@@ -41,7 +42,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    [self.view setBackgroundColor:[UIColor whiteColor]];
+    [self.view setBackgroundColor:[TZCutomColor whiteColor]];
     self.automaticallyAdjustsScrollViewInsets = NO;
     [self setDefaultData];
     [self createUI];
@@ -182,8 +183,8 @@
     UIBezierPath *cropPath = [UIBezierPath bezierPathWithArcCenter:CGPointMake(arcX, arcY) radius:arcRadius+1 startAngle:0 endAngle:2*M_PI clockwise:NO];
     CAShapeLayer *cropLayer = [CAShapeLayer layer];
     cropLayer.path = cropPath.CGPath;
-    cropLayer.strokeColor = [UIColor whiteColor].CGColor;
-    cropLayer.fillColor = [UIColor whiteColor].CGColor;
+    cropLayer.strokeColor = [TZCutomColor whiteColor].CGColor;
+    cropLayer.fillColor = [TZCutomColor whiteColor].CGColor;
     [self.overLayView.layer addSublayer:cropLayer];
 }
 
@@ -374,7 +375,7 @@
 -(void)setImage:(UIImage *)image{
     [_imageView setImage:image];
     _image = image;
-    _imageView.backgroundColor = [UIColor redColor];
+    _imageView.backgroundColor = [TZCutomColor redColor];
     [self.view setNeedsLayout];
     
     //初始化ImageView的Frame
@@ -416,7 +417,7 @@
 - (UIView*)navView {
     if (!_navView) {
         _navView = [[UIView alloc]init];
-        _navView.backgroundColor = [UIColor whiteColor];
+        _navView.backgroundColor = [TZCutomColor whiteColor];
     }
     return _navView;
 }
@@ -424,7 +425,7 @@
     if (!_titleLabel) {
         _titleLabel = [[UILabel alloc]init];
         _titleLabel.font = [UIFont systemFontOfSize:17];
-        _titleLabel.textColor = [UIColor blackColor];
+        _titleLabel.textColor = [TZCutomColor blackColor];
         _titleLabel.textAlignment = NSTextAlignmentCenter;
     }
     return _titleLabel;
@@ -474,7 +475,7 @@
 - (UIView *)topLine {
     if (!_topLine) {
         _topLine = [[UIView alloc] init];
-        _topLine.backgroundColor = UIColor.grayColor;
+        _topLine.backgroundColor = TZCutomColor.grayColor;
     }
     return _topLine;
 }
