@@ -251,7 +251,7 @@
     int bitRate = [setting calculateAverageBitRateByVideoTrack:videoTrack videoSize:videoSize];
     NSDictionary *compressionPropertier = @{
                                             AVVideoAverageBitRateKey: @(bitRate),
-                                            AVVideoProfileLevelKey: (NSString *)kVTProfileLevel_H264_High_3_1,
+                                            AVVideoProfileLevelKey: (NSString *)kVTProfileLevel_H264_High_AutoLevel,
                                             AVVideoAllowFrameReorderingKey: @(YES)
                                             };
     NSDictionary *compressionSetting;
