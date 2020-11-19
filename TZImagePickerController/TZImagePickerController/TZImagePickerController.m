@@ -459,6 +459,7 @@
         self.allowPickingVideo = YES;
         self.allowPickingImage = YES;
         self.allowTakePicture = YES;
+        self.allowTakeVideo = YES;
         self.sortAscendingByModificationDate = YES;
         self.autoDismiss = YES;
         self.columnNumber = columnNumber;
@@ -912,9 +913,6 @@
 - (void)setAllowPickingVideo:(BOOL)allowPickingVideo {
     _allowPickingVideo = allowPickingVideo;
     [TZImagePickerConfig sharedInstance].allowPickingVideo = allowPickingVideo;
-    if (!allowPickingVideo) {
-        _allowTakeVideo = NO;
-    }
 }
 
 - (void)setPreferredLanguage:(NSString *)preferredLanguage {
